@@ -51,8 +51,8 @@ void SceneApp::CleanUp()
 	delete sprite_renderer_;
 	sprite_renderer_ = NULL;
 
-	//audioManager->UnloadAllSamples();
-	//audioManager->UnloadMusic();
+	audioManager->UnloadAllSamples();
+	audioManager->UnloadMusic();
 	delete audioManager;
 	audioManager = NULL;
 }
@@ -282,14 +282,22 @@ void SceneApp::UpdateSimulation(float frame_time)
 
 void SceneApp::FrontendInit()
 {
-	button_icon_ = CreateTextureFromPNG("playbutton.png", platform_);
+	button_icon_ = CreateTextureFromPNG("playbuttonWhite.png", platform_);
 	backgroundSprite = CreateTextureFromPNG("mainMenuBackground.png", platform_);
+	audioManager->LoadMusic("MainMenuMusic.wav", platform_);
+	audioManager->PlayMusic();
 }
 
 void SceneApp::FrontendRelease()
 {
 	delete button_icon_;
 	button_icon_ = NULL;
+
+	delete backgroundSprite;
+	backgroundSprite = NULL;
+
+	audioManager->StopMusic();
+	audioManager->UnloadMusic();
 }
 
 void SceneApp::FrontendUpdate(float frame_time)
@@ -316,7 +324,7 @@ void SceneApp::FrontendRender()
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
-		"Title Text");
+		"Save The Home!");
 
 	// Render button icon
 	gef::Sprite button;
