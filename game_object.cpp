@@ -39,4 +39,12 @@ void Player::DecrementHealth()
 	//gef::DebugOut("Player has taken damage.\n");
 }
 
+Enemy::Enemy()
+{
+	set_type(ENEMY);
+}
 
+void Enemy::DecrementHealth()
+{
+	//gef::DebugOut("Enemy has taken damage.\n");
+}

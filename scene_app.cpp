@@ -8,9 +8,10 @@
 #include <maths/math_utils.h>
 #include <input/sony_controller_input_manager.h>
 #include <input/keyboard.h>
+#include <input/touch_input_manager.h>
 #include <graphics/sprite.h>
 #include "load_texture.h"
-
+#include <iostream>
 
 SceneApp::SceneApp(gef::Platform& platform) :
 	Application(platform),
@@ -21,9 +22,12 @@ SceneApp::SceneApp(gef::Platform& platform) :
 	font_(NULL),
 	world_(NULL),
 	player_body_(NULL),
+	enemyBody(NULL),
 	button_icon_(NULL),
 	backgroundSprite(NULL),
-	audioManager(NULL)
+	audioManager(NULL),
+	activeTouchID(-1),
+	enemySceneAsset(NULL)
 {
 }
 
@@ -227,6 +231,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 
 	// update object visuals from simulation data
 	player_.UpdateFromSimulation(player_body_);
+	enemy.UpdateFromSimulation(enemyBody);
 
 	// don't have to update the ground visuals as it is static
 
@@ -246,7 +251,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 
 			// DO COLLISION RESPONSE HERE
 			Player* player = NULL;
-
+			Enemy* enemy = NULL;
 			GameObject* gameObjectA = NULL;
 			GameObject* gameObjectB = NULL;
 
@@ -259,6 +264,10 @@ void SceneApp::UpdateSimulation(float frame_time)
 				{
 					player = (Player*)bodyA->GetUserData();
 				}
+				else if (gameObjectA->type() == ENEMY)
+				{
+					enemy = (Enemy*)bodyA->GetUserData();
+				}
 			}
 
 			if (gameObjectB)
@@ -267,11 +276,20 @@ void SceneApp::UpdateSimulation(float frame_time)
 				{
 					player = (Player*)bodyB->GetUserData();
 				}
+				else if (gameObjectB->type() == ENEMY)
+				{
+					enemy = (Enemy*)bodyB->GetUserData();
+				}
 			}
 
 			if (player)
 			{
 				player->DecrementHealth();
+			}
+
+			if (enemy)
+			{
+				enemy->DecrementHealth();
 			}
 		}
 
@@ -340,12 +358,33 @@ void SceneApp::FrontendRender()
 
 void SceneApp::GameInit()
 {
+	// Make sure there is a panel to detect touch, activate if it exists
+	if (input_manager_ && input_manager_->touch_manager() && (input_manager_->touch_manager()->max_num_panels() > 0))
+	{
+		input_manager_->touch_manager()->EnablePanel(0);
+	}
+
+	//Load our enemy asset
+	const char* sceneAssetFilename = "stickman.scn";
+	enemySceneAsset = LoadSceneAssets(platform_, sceneAssetFilename);
+	if (!enemySceneAsset)
+	{
+		gef::DebugOut("Failed to load enemy scene file. %s", sceneAssetFilename);
+	}
+
 	// create the renderer for draw 3D geometry
 	renderer_3d_ = gef::Renderer3D::Create(platform_);
 
 	// initialise primitive builder to make create some 3D geometry easier
 	primitive_builder_ = new PrimitiveBuilder(platform_);
 
+	//Create our touch sprite
+	touchSprite.set_position(platform_.width() * 0.5f, platform_.height() * 0.5f, 0.0f);
+	touchSprite.set_width(64.0f);
+	touchSprite.set_height(64.0f);
+
+	//Load our audio samples
+	gunShotSampleID = audioManager->LoadSample("gunShot.wav", platform_);
 
 	SetupLights();
 
@@ -353,7 +392,13 @@ void SceneApp::GameInit()
 	b2Vec2 gravity(0.0f, -9.81f);
 	world_ = new b2World(gravity);
 
+	//Initialise our spawn points
+	spawnPoints[0] = new b2Vec2(-1, 0.25);
+	spawnPoints[1] = new b2Vec2(-1, 0.50);
+	spawnPoints[2] = new b2Vec2(-1, 0.75);
+
 	InitPlayer();
+	setupEnemy();
 	InitGround();
 }
 
@@ -372,6 +417,8 @@ void SceneApp::GameRelease()
 	delete renderer_3d_;
 	renderer_3d_ = NULL;
 
+	audioManager->UnloadSample(gunShotSampleID);
+
 }
 
 void SceneApp::GameUpdate(float frame_time)
@@ -380,6 +427,8 @@ void SceneApp::GameUpdate(float frame_time)
 
 
 	UpdateSimulation(frame_time);
+
+	ProcessTouchInput();
 }
 
 void SceneApp::GameRender()
@@ -413,10 +462,14 @@ void SceneApp::GameRender()
 	renderer_3d_->DrawMesh(player_);
 	renderer_3d_->set_override_material(NULL);
 
+	//Draw enemy
+	renderer_3d_->DrawMesh(enemy);
+
 	renderer_3d_->End();
 
 	// start drawing sprites, but don't clear the frame buffer
 	sprite_renderer_->Begin(false);
+	sprite_renderer_->DrawSprite(touchSprite);
 	DrawHUD();
 	sprite_renderer_->End();
 }
@@ -439,4 +492,130 @@ void SceneApp::updateStateMachine(int ID)
 		break;
 	}
 	return;
+}
+
+void SceneApp::ProcessTouchInput()
+{
+	const gef::TouchInputManager* touchInput = input_manager_->touch_manager();
+
+	if (touchInput && (touchInput->max_num_panels() > 0))
+	{
+		//Get the active touches for this panel
+		const gef::TouchContainer& panelTouches = touchInput->touches(0);
+
+		//Go through the touches
+		for (gef::ConstTouchIterator touch = panelTouches.begin(); touch != panelTouches.end(); ++touch )
+		{
+			//If active touch ID is -1, then we are not currently processing a touch
+			if (activeTouchID == -1)
+			{
+				//Check for the start of a new touch
+				if (touch->type == gef::TT_NEW)
+				{
+					activeTouchID = touch->id;
+
+					//Do any processing for a new touch here
+					///We're just going to record the postion of the touch
+					touchPosition = touch->position;
+
+					//move touch sprite
+					touchSprite.set_position(touch->position.x, touch->position.y, 0);
+
+					std::cout << "We are processing a touch at postion: " << touchPosition.x << " x and " << touchPosition.y << " y" << std::endl;
+
+					audioManager->PlaySample(gunShotSampleID,false);
+				}
+			}
+			else if (activeTouchID == touch->id)
+			{
+				if (touch->type == gef::TT_RELEASED)
+				{
+					activeTouchID = -1;
+				}
+			}
+		}
+	}
+}
+
+void SceneApp::setupEnemy()
+{
+	// setup the mesh for the enemy
+	enemy.set_mesh(getMeshFromSceneAssets(enemySceneAsset));
+	// create a physics body for the enemy
+	b2BodyDef enemy_body_def;
+	enemy_body_def.type = b2_dynamicBody;
+
+	int randomNumber = rand() % 3;
+
+	switch (randomNumber)
+	{
+	case 0:
+		enemy_body_def.position = *spawnPoints[0];
+		break;
+	case 1:
+		enemy_body_def.position = *spawnPoints[1];
+		break;
+	case 2:
+		enemy_body_def.position = *spawnPoints[2];
+		break;
+	default:
+		break;
+	}
+
+	enemyBody = world_->CreateBody(&enemy_body_def);
+
+	// create the shape for the enemy (collider?)
+	b2PolygonShape enemy_shape;
+	enemy_shape.SetAsBox(0.5f, 0.5f);
+
+	// create the fixture
+	b2FixtureDef enemy_fixture_def;
+	enemy_fixture_def.shape = &enemy_shape;
+	enemy_fixture_def.density = 1.0f;
+
+	// create the fixture on the rigid body
+	enemyBody->CreateFixture(&enemy_fixture_def);
+
+	// update visuals from simulation data
+	enemy.UpdateFromSimulation(enemyBody);
+
+	//Connect body to the game object
+	enemyBody->SetUserData(&enemy);
+
+	enemy.set_type(ENEMY);
+
+	gef::DebugOut("Created enemy\n");
+
+}
+
+gef::Scene* SceneApp::LoadSceneAssets(gef::Platform& platform, const char* filename)
+{
+	gef::Scene* scene = new gef::Scene();
+
+	if (scene->ReadSceneFromFile(platform, filename))
+	{
+		// if scene file loads successful
+		// create material and mesh resources from the scene data
+		scene->CreateMaterials(platform);
+		scene->CreateMeshes(platform);
+	}
+	else
+	{
+		delete scene;
+		scene = NULL;
+	}
+
+	return scene;
+}
+
+gef::Mesh* SceneApp::getMeshFromSceneAssets(gef::Scene* scene)
+{
+	gef::Mesh* mesh = NULL;
+
+	// if the scene data contains at least one mesh
+	// return the first mesh
+	if (scene && scene->meshes.size() > 0)
+		mesh = scene->meshes.front();
+
+	return mesh;
 }

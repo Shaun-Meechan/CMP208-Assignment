@@ -30,4 +30,11 @@ public:
 	void DecrementHealth();
 };
 
+class Enemy : public GameObject
+{
+public:
+	Enemy();
+	void DecrementHealth();
+};
+
 #endif // _GAME_OBJECT_H

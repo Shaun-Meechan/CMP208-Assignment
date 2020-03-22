@@ -9,6 +9,8 @@
 #include <box2d/Box2D.h>
 #include <audio/audio_manager.h>
 #include "game_object.h"
+#include <graphics/sprite.h>
+#include "graphics/scene.h"
 
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
@@ -85,6 +87,22 @@ private:
 	void GameUpdate(float frame_time);
 	void GameRender();
 
+	//Game Variables
+	gef::Vector2 touchPosition;
+	Int32 activeTouchID;
+	gef::Sprite touchSprite;
+	int gunShotSampleID;
+	GameObject enemy;
+	b2Body* enemyBody;
+	gef::MeshInstance enemyMesh;
+	gef::Scene* enemySceneAsset;
+	b2Vec2* spawnPoints[3];
+	//Game functions
+	void ProcessTouchInput();
+	void setupEnemy();
+	gef::Scene* LoadSceneAssets(gef::Platform& platform, const char* filename);
+	gef::Mesh* getMeshFromSceneAssets(gef::Scene* scene);
+	// Global Functions
 	void updateStateMachine(int ID);
 };
 
