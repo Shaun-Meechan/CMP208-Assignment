@@ -1,11 +1,17 @@
 #include "EnemyObject.h"
 
-EnemyObject::EnemyObject()
+EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world)
 {
 	// setup the mesh for the enemy
-	this->set_mesh(getMeshFromSceneAssets(enemySceneAsset));//<- does't have access to that func
+	//enemyMesh.set_mesh(getMeshFromSceneAssets(sceneFile));
+	this->set_mesh(getMeshFromSceneAssets(sceneFile));
 	// create a physics body for the enemy
 	bodyDef.type = b2_dynamicBody;
+
+	//Initialise our spawn points
+	spawnPoints[0] = new b2Vec2(-1, 0.25);
+	spawnPoints[1] = new b2Vec2(-1, 0.50);
+	spawnPoints[2] = new b2Vec2(-1, 0.75);
 
 	int randomNumber = rand() % 3;
 
@@ -24,7 +30,7 @@ EnemyObject::EnemyObject()
 		break;
 	}
 
-	//enemyBody = world_->CreateBody(&enemy_body_def); <- Could be done in game init.
+	body = world->CreateBody(&bodyDef); //<- Could be done in game init.
 
 	// create the shape for the enemy (collider?)
 	shape.SetAsBox(0.5f, 0.5f);
@@ -43,6 +49,21 @@ EnemyObject::EnemyObject()
 	//enemyBody->SetUserData(&enemy); <- Could be done in game init.
 
 	this->set_type(ENEMY);
+}
 
-	gef::DebugOut("Created enemy\n");
+b2Body* EnemyObject::getBody()
+{
+	return body;
+}
+
+gef::Mesh* EnemyObject::getMeshFromSceneAssets(gef::Scene* scene)
+{
+	gef::Mesh* mesh = NULL;
+
+	// if the scene data contains at least one mesh
+	// return the first mesh
+	if (scene && scene->meshes.size() > 0)
+		mesh = scene->meshes.front();
+
+	return mesh;
 }

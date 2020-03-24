@@ -232,6 +232,10 @@ void SceneApp::UpdateSimulation(float frame_time)
 	// update object visuals from simulation data
 	player_.UpdateFromSimulation(player_body_);
 	enemy.UpdateFromSimulation(enemyBody);
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
+	}
 
 	// don't have to update the ground visuals as it is static
 
@@ -392,13 +396,17 @@ void SceneApp::GameInit()
 	b2Vec2 gravity(0.0f, -9.81f);
 	world_ = new b2World(gravity);
 
-	//Initialise our spawn points
-	spawnPoints[0] = new b2Vec2(-1, 0.25);
-	spawnPoints[1] = new b2Vec2(-1, 0.50);
-	spawnPoints[2] = new b2Vec2(-1, 0.75);
 
 	InitPlayer();
-	setupEnemy();
+
+	enemyMesh.set_mesh(getMeshFromSceneAssets(enemySceneAsset));
+	for (int i = 0; i < 4; i++)
+	{
+		enemies.push_back(new EnemyObject(enemySceneAsset,world_));
+		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
+		enemies[i]->getBody()->SetUserData(enemies[i]);
+	}
+	//setupEnemy();
 	InitGround();
 }
 
@@ -416,6 +424,8 @@ void SceneApp::GameRelease()
 
 	delete renderer_3d_;
 	renderer_3d_ = NULL;
+
+	enemies.clear();
 
 	audioManager->UnloadSample(gunShotSampleID);
 
@@ -463,7 +473,11 @@ void SceneApp::GameRender()
 	renderer_3d_->set_override_material(NULL);
 
 	//Draw enemy
-	renderer_3d_->DrawMesh(enemy);
+	//renderer_3d_->DrawMesh(enemy);
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		renderer_3d_->DrawMesh(*enemies[i]);
+	}
 
 	renderer_3d_->End();
 
@@ -537,56 +551,56 @@ void SceneApp::ProcessTouchInput()
 	}
 }
 
-void SceneApp::setupEnemy()
-{
-	// setup the mesh for the enemy
-	enemy.set_mesh(getMeshFromSceneAssets(enemySceneAsset));
-	// create a physics body for the enemy
-	b2BodyDef enemy_body_def;
-	enemy_body_def.type = b2_dynamicBody;
-
-	int randomNumber = rand() % 3;
-
-	switch (randomNumber)
-	{
-	case 0:
-		enemy_body_def.position = *spawnPoints[0];
-		break;
-	case 1:
-		enemy_body_def.position = *spawnPoints[1];
-		break;
-	case 2:
-		enemy_body_def.position = *spawnPoints[2];
-		break;
-	default:
-		break;
-	}
-
-	enemyBody = world_->CreateBody(&enemy_body_def);
-
-	// create the shape for the enemy (collider?)
-	b2PolygonShape enemy_shape;
-	enemy_shape.SetAsBox(0.5f, 0.5f);
-
-	// create the fixture
-	b2FixtureDef enemy_fixture_def;
-	enemy_fixture_def.shape = &enemy_shape;
-	enemy_fixture_def.density = 1.0f;
-
-	// create the fixture on the rigid body
-	enemyBody->CreateFixture(&enemy_fixture_def);
-
-	// update visuals from simulation data
-	enemy.UpdateFromSimulation(enemyBody);
-
-	//Connect body to the game object
-	enemyBody->SetUserData(&enemy);
-
-	enemy.set_type(ENEMY);
-
-	gef::DebugOut("Created enemy\n");
-
-}
+//void SceneApp::setupEnemy()
+//{
+//	// setup the mesh for the enemy
+//	enemy.set_mesh(getMeshFromSceneAssets(enemySceneAsset));
+//	// create a physics body for the enemy
+//	b2BodyDef enemy_body_def;
+//	enemy_body_def.type = b2_dynamicBody;
+//
+//	int randomNumber = rand() % 3;
+//
+//	switch (randomNumber)
+//	{
+//	case 0:
+//		enemy_body_def.position = *spawnPoints[0];
+//		break;
+//	case 1:
+//		enemy_body_def.position = *spawnPoints[1];
+//		break;
+//	case 2:
+//		enemy_body_def.position = *spawnPoints[2];
+//		break;
+//	default:
+//		break;
+//	}
+//
+//	enemyBody = world_->CreateBody(&enemy_body_def);
+//
+//	// create the shape for the enemy (collider?)
+//	b2PolygonShape enemy_shape;
+//	enemy_shape.SetAsBox(0.5f, 0.5f);
+//
+//	// create the fixture
+//	b2FixtureDef enemy_fixture_def;
+//	enemy_fixture_def.shape = &enemy_shape;
+//	enemy_fixture_def.density = 1.0f;
+//
+//	// create the fixture on the rigid body
+//	enemyBody->CreateFixture(&enemy_fixture_def);
+//
+//	// update visuals from simulation data
+//	enemy.UpdateFromSimulation(enemyBody);
+//
+//	//Connect body to the game object
+//	enemyBody->SetUserData(&enemy);
+//
+//	enemy.set_type(ENEMY);
+//
+//	gef::DebugOut("Created enemy\n");
+//
+//}
 
 gef::Scene* SceneApp::LoadSceneAssets(gef::Platform& platform, const char* filename)
 {
