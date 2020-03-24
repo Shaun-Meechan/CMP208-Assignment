@@ -11,6 +11,7 @@
 #include "game_object.h"
 #include <graphics/sprite.h>
 #include "graphics/scene.h"
+#include <vector>
 
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
@@ -92,6 +93,8 @@ private:
 	Int32 activeTouchID;
 	gef::Sprite touchSprite;
 	int gunShotSampleID;
+	std::vector <GameObject> enemies;
+	std::vector <b2Body*> enemieBodies;
 	GameObject enemy;
 	b2Body* enemyBody;
 	gef::MeshInstance enemyMesh;
