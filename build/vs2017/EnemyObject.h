@@ -3,6 +3,7 @@
 #include <game_object.h>
 #include <box2d/Box2D.h>
 #include "graphics/scene.h"
+#include <maths/vector4.h>
 
 class EnemyObject: public GameObject
 {

@@ -400,7 +400,7 @@ void SceneApp::GameInit()
 	InitPlayer();
 
 	enemyMesh.set_mesh(getMeshFromSceneAssets(enemySceneAsset));
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		enemies.push_back(new EnemyObject(enemySceneAsset,world_));
 		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());

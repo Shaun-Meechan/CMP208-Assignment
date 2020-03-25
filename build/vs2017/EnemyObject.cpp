@@ -30,7 +30,7 @@ EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world)
 		break;
 	}
 
-	body = world->CreateBody(&bodyDef); //<- Could be done in game init.
+	body = world->CreateBody(&bodyDef);
 
 	// create the shape for the enemy (collider?)
 	shape.SetAsBox(0.5f, 0.5f);
@@ -42,13 +42,15 @@ EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world)
 	// create the fixture on the rigid body
 	body->CreateFixture(&fixtureDef);
 
-	// update visuals from simulation data
-	//enemy.UpdateFromSimulation(enemyBody); <- Could be done in game init.
-
-	//Connect body to the game object
-	//enemyBody->SetUserData(&enemy); <- Could be done in game init.
-
 	this->set_type(ENEMY);
+
+	gef::Matrix44 scaleMatrix;
+
+	scaleMatrix.SetIdentity();
+
+	scaleMatrix.Scale(gef::Vector4(0.5f, 0.5f, 1.0f));
+
+	this->set_transform(scaleMatrix);
 }
 
 b2Body* EnemyObject::getBody()
