@@ -10,6 +10,8 @@ class EnemyObject: public GameObject
 public:
 	EnemyObject(gef::Scene* sceneFile, b2World* world);
 	b2Body* getBody();
+	int getHealth();
+	void decrementHealth(int value);
 private:
 	b2Body* body;
 	b2BodyDef bodyDef;
@@ -18,5 +20,6 @@ private:
 	gef::MeshInstance enemyMesh;
 	b2Vec2* spawnPoints[3];
 	gef::Mesh* getMeshFromSceneAssets(gef::Scene* scene);
+	int health;
 };
 

@@ -22,7 +22,6 @@ SceneApp::SceneApp(gef::Platform& platform) :
 	font_(NULL),
 	world_(NULL),
 	player_body_(NULL),
-	enemyBody(NULL),
 	button_icon_(NULL),
 	backgroundSprite(NULL),
 	audioManager(NULL),
@@ -150,38 +149,6 @@ void SceneApp::InitPlayer()
 	player_body_->SetUserData(&player_);
 }
 
-void SceneApp::InitGround()
-{
-	// ground dimensions
-	gef::Vector4 ground_half_dimensions(5.0f, 0.5f, 0.5f);
-
-	// setup the mesh for the ground
-	ground_mesh_ = primitive_builder_->CreateBoxMesh(ground_half_dimensions);
-	ground_.set_mesh(ground_mesh_);
-
-	// create a physics body
-	b2BodyDef body_def;
-	body_def.type = b2_staticBody;
-	body_def.position = b2Vec2(0.0f, 0.0f);
-
-	ground_body_ = world_->CreateBody(&body_def);
-
-	// create the shape
-	b2PolygonShape shape;
-	shape.SetAsBox(ground_half_dimensions.x(), ground_half_dimensions.y());
-
-	// create the fixture
-	b2FixtureDef fixture_def;
-	fixture_def.shape = &shape;
-
-	// create the fixture on the rigid body
-	ground_body_->CreateFixture(&fixture_def);
-
-	// update visuals from simulation data
-	ground_.UpdateFromSimulation(ground_body_);
-}
-
-
 void SceneApp::InitFont()
 {
 	font_ = new gef::Font(platform_);
@@ -231,7 +198,6 @@ void SceneApp::UpdateSimulation(float frame_time)
 
 	// update object visuals from simulation data
 	player_.UpdateFromSimulation(player_body_);
-	enemy.UpdateFromSimulation(enemyBody);
 	for (int i = 0; i < enemies.size(); i++)
 	{
 		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
@@ -362,6 +328,8 @@ void SceneApp::FrontendRender()
 
 void SceneApp::GameInit()
 {
+	//Define how many enemies to make, if it is < 0 program will not respond
+	unsigned int enemiesToMake = 4;
 	// Make sure there is a panel to detect touch, activate if it exists
 	if (input_manager_ && input_manager_->touch_manager() && (input_manager_->touch_manager()->max_num_panels() > 0))
 	{
@@ -393,21 +361,28 @@ void SceneApp::GameInit()
 	SetupLights();
 
 	// initialise the physics world
-	b2Vec2 gravity(0.0f, -9.81f);
+	//b2Vec2 gravity(0.0f, -9.81f);
+	b2Vec2 gravity(0.0f, 0.0f);
 	world_ = new b2World(gravity);
 
 
 	InitPlayer();
 
 	enemyMesh.set_mesh(getMeshFromSceneAssets(enemySceneAsset));
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < enemiesToMake; i++)
 	{
 		enemies.push_back(new EnemyObject(enemySceneAsset,world_));
 		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
 		enemies[i]->getBody()->SetUserData(enemies[i]);
 	}
-	//setupEnemy();
-	InitGround();
+
+	//Move alive enemeies
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		enemies[i]->getBody()->ApplyForceToCenter(b2Vec2(3, 0), true);
+	}
+	
+	
 }
 
 void SceneApp::GameRelease()
@@ -415,9 +390,6 @@ void SceneApp::GameRelease()
 	// destroying the physics world also destroys all the objects within it
 	delete world_;
 	world_ = NULL;
-
-	delete ground_mesh_;
-	ground_mesh_ = NULL;
 
 	delete primitive_builder_;
 	primitive_builder_ = NULL;
@@ -435,6 +407,14 @@ void SceneApp::GameUpdate(float frame_time)
 {
 	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
 
+	//check all the alive enemies to see if they need to be killed
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		if (enemies[i]->getHealth() <= 0)
+		{
+			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
+		}
+	}
 
 	UpdateSimulation(frame_time);
 
@@ -464,9 +444,6 @@ void SceneApp::GameRender()
 	// draw 3d geometry
 	renderer_3d_->Begin();
 
-	// draw ground
-	renderer_3d_->DrawMesh(ground_);
-
 	// draw player
 	renderer_3d_->set_override_material(&primitive_builder_->red_material());
 	renderer_3d_->DrawMesh(player_);
@@ -474,8 +451,23 @@ void SceneApp::GameRender()
 
 	//Draw enemy
 	//renderer_3d_->DrawMesh(enemy);
+		gef::Matrix44 scaleMatrix;
+		gef::Matrix44 transformMatrix;
+		gef::Matrix44 rotationMatrix;
+
+		rotationMatrix.SetIdentity();
+		transformMatrix.SetIdentity();
+		scaleMatrix.SetIdentity();
+
+		scaleMatrix.Scale(gef::Vector4(0.2f, 0.2f, 0.2f));
+		float newRads = gef::DegToRad(90);
+		rotationMatrix.RotationY(newRads);
 	for (int i = 0; i < enemies.size(); i++)
 	{
+		transformMatrix = enemies[i]->transform();
+
+		enemies[i]->set_transform((rotationMatrix * transformMatrix) * scaleMatrix );
+
 		renderer_3d_->DrawMesh(*enemies[i]);
 	}
 
@@ -550,57 +542,6 @@ void SceneApp::ProcessTouchInput()
 		}
 	}
 }
-
-//void SceneApp::setupEnemy()
-//{
-//	// setup the mesh for the enemy
-//	enemy.set_mesh(getMeshFromSceneAssets(enemySceneAsset));
-//	// create a physics body for the enemy
-//	b2BodyDef enemy_body_def;
-//	enemy_body_def.type = b2_dynamicBody;
-//
-//	int randomNumber = rand() % 3;
-//
-//	switch (randomNumber)
-//	{
-//	case 0:
-//		enemy_body_def.position = *spawnPoints[0];
-//		break;
-//	case 1:
-//		enemy_body_def.position = *spawnPoints[1];
-//		break;
-//	case 2:
-//		enemy_body_def.position = *spawnPoints[2];
-//		break;
-//	default:
-//		break;
-//	}
-//
-//	enemyBody = world_->CreateBody(&enemy_body_def);
-//
-//	// create the shape for the enemy (collider?)
-//	b2PolygonShape enemy_shape;
-//	enemy_shape.SetAsBox(0.5f, 0.5f);
-//
-//	// create the fixture
-//	b2FixtureDef enemy_fixture_def;
-//	enemy_fixture_def.shape = &enemy_shape;
-//	enemy_fixture_def.density = 1.0f;
-//
-//	// create the fixture on the rigid body
-//	enemyBody->CreateFixture(&enemy_fixture_def);
-//
-//	// update visuals from simulation data
-//	enemy.UpdateFromSimulation(enemyBody);
-//
-//	//Connect body to the game object
-//	enemyBody->SetUserData(&enemy);
-//
-//	enemy.set_type(ENEMY);
-//
-//	gef::DebugOut("Created enemy\n");
-//
-//}
 
 gef::Scene* SceneApp::LoadSceneAssets(gef::Platform& platform, const char* filename)
 {

@@ -13,6 +13,7 @@
 #include "graphics/scene.h"
 #include <vector>
 #include <EnemyObject.h>
+#include <math.h>
 
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
@@ -35,7 +36,6 @@ public:
 	void Render();
 private:
 	void InitPlayer();
-	void InitGround();
 	void InitFont();
 	void CleanUpFont();
 	void DrawHUD();
@@ -68,11 +68,6 @@ private:
 	Player player_;
 	b2Body* player_body_;
 
-	// ground variables
-	gef::Mesh* ground_mesh_;
-	GameObject ground_;
-	b2Body* ground_body_;
-
 	// audio variables
 	int sfx_id_;
 	int sfx_voice_id_;
@@ -95,9 +90,6 @@ private:
 	gef::Sprite touchSprite;
 	int gunShotSampleID;
 	std::vector <EnemyObject*> enemies;
-	std::vector <b2Body*> enemieBodies;
-	GameObject enemy;
-	b2Body* enemyBody;
 	gef::MeshInstance enemyMesh;
 	gef::Scene* enemySceneAsset;
 	//Game functions

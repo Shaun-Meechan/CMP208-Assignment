@@ -3,15 +3,14 @@
 EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world)
 {
 	// setup the mesh for the enemy
-	//enemyMesh.set_mesh(getMeshFromSceneAssets(sceneFile));
 	this->set_mesh(getMeshFromSceneAssets(sceneFile));
 	// create a physics body for the enemy
 	bodyDef.type = b2_dynamicBody;
 
 	//Initialise our spawn points
-	spawnPoints[0] = new b2Vec2(-1, 0.25);
-	spawnPoints[1] = new b2Vec2(-1, 0.50);
-	spawnPoints[2] = new b2Vec2(-1, 0.75);
+	spawnPoints[0] = new b2Vec2(-33, 2.7f);
+	spawnPoints[1] = new b2Vec2(-33, 0);
+	spawnPoints[2] = new b2Vec2(-33, -2.7f);
 
 	int randomNumber = rand() % 3;
 
@@ -33,7 +32,7 @@ EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world)
 	body = world->CreateBody(&bodyDef);
 
 	// create the shape for the enemy (collider?)
-	shape.SetAsBox(0.5f, 0.5f);
+	shape.SetAsBox(0.1f, 0.1f);
 
 	// create the fixture
 	fixtureDef.shape = &shape;
@@ -43,19 +42,21 @@ EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world)
 	body->CreateFixture(&fixtureDef);
 
 	this->set_type(ENEMY);
-
-	gef::Matrix44 scaleMatrix;
-
-	scaleMatrix.SetIdentity();
-
-	scaleMatrix.Scale(gef::Vector4(0.5f, 0.5f, 1.0f));
-
-	this->set_transform(scaleMatrix);
 }
 
 b2Body* EnemyObject::getBody()
 {
 	return body;
+}
+
+int EnemyObject::getHealth()
+{
+	return health;
+}
+
+void EnemyObject::decrementHealth(int value)
+{
+	health = health - value;
 }
 
 gef::Mesh* EnemyObject::getMeshFromSceneAssets(gef::Scene* scene)
