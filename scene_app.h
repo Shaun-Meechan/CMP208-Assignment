@@ -92,6 +92,7 @@ private:
 	std::vector <EnemyObject*> enemies;
 	gef::MeshInstance enemyMesh;
 	gef::Scene* enemySceneAsset;
+	gef::Scene* playerSceneAsset;
 	//Game functions
 	void ProcessTouchInput();
 	//void setupEnemy();

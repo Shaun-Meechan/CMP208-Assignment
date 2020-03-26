@@ -8,9 +8,9 @@ EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world)
 	bodyDef.type = b2_dynamicBody;
 
 	//Initialise our spawn points
-	spawnPoints[0] = new b2Vec2(-33, 2.7f);
+	spawnPoints[0] = new b2Vec2(-33, 10);
 	spawnPoints[1] = new b2Vec2(-33, 0);
-	spawnPoints[2] = new b2Vec2(-33, -2.7f);
+	spawnPoints[2] = new b2Vec2(-33, -10);
 
 	int randomNumber = rand() % 3;
 

@@ -26,7 +26,8 @@ SceneApp::SceneApp(gef::Platform& platform) :
 	backgroundSprite(NULL),
 	audioManager(NULL),
 	activeTouchID(-1),
-	enemySceneAsset(NULL)
+	enemySceneAsset(NULL),
+	playerSceneAsset(NULL)
 {
 }
 
@@ -121,18 +122,18 @@ void SceneApp::Render()
 void SceneApp::InitPlayer()
 {
 	// setup the mesh for the player
-	player_.set_mesh(primitive_builder_->GetDefaultCubeMesh());
+	player_.set_mesh(getMeshFromSceneAssets(playerSceneAsset));
 
 	// create a physics body for the player
 	b2BodyDef player_body_def;
 	player_body_def.type = b2_dynamicBody;
-	player_body_def.position = b2Vec2(0.0f, 4.0f);
+	player_body_def.position = b2Vec2(60.0f, -10.0f);
 
 	player_body_ = world_->CreateBody(&player_body_def);
 
 	// create the shape for the player
 	b2PolygonShape player_shape;
-	player_shape.SetAsBox(0.5f, 0.5f);
+	player_shape.SetAsBox(57, platform_.height());
 
 	// create the fixture
 	b2FixtureDef player_fixture_def;
@@ -203,8 +204,6 @@ void SceneApp::UpdateSimulation(float frame_time)
 		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
 	}
 
-	// don't have to update the ground visuals as it is static
-
 	// collision detection
 	// get the head of the contact list
 	b2Contact* contact = world_->GetContactList();
@@ -252,8 +251,9 @@ void SceneApp::UpdateSimulation(float frame_time)
 				}
 			}
 
-			if (player)
+			if (player && enemy)
 			{
+				gef::DebugOut("Player and enemy collision!\n");
 				player->DecrementHealth();
 			}
 
@@ -329,7 +329,7 @@ void SceneApp::FrontendRender()
 void SceneApp::GameInit()
 {
 	//Define how many enemies to make, if it is < 0 program will not respond
-	unsigned int enemiesToMake = 4;
+	unsigned int enemiesToMake = 8;
 	// Make sure there is a panel to detect touch, activate if it exists
 	if (input_manager_ && input_manager_->touch_manager() && (input_manager_->touch_manager()->max_num_panels() > 0))
 	{
@@ -342,6 +342,12 @@ void SceneApp::GameInit()
 	if (!enemySceneAsset)
 	{
 		gef::DebugOut("Failed to load enemy scene file. %s", sceneAssetFilename);
+	}
+	sceneAssetFilename = "NewHouse.scn";
+	playerSceneAsset = LoadSceneAssets(platform_, sceneAssetFilename);
+	if (!playerSceneAsset)
+	{
+		gef::DebugOut("Failed to load player scene file. %s", sceneAssetFilename);
 	}
 
 	// create the renderer for draw 3D geometry
@@ -408,13 +414,13 @@ void SceneApp::GameUpdate(float frame_time)
 	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
 
 	//check all the alive enemies to see if they need to be killed
-	for (int i = 0; i < enemies.size(); i++)
-	{
-		if (enemies[i]->getHealth() <= 0)
-		{
-			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
-		}
-	}
+	//for (int i = 0; i < enemies.size(); i++)
+	//{
+	//	if (enemies[i]->getHealth() <= 0)
+	//	{
+	//		enemies.erase(enemies.begin() + i);//Remove the now dead enemy
+	//	}
+	//}
 
 	UpdateSimulation(frame_time);
 
@@ -445,12 +451,24 @@ void SceneApp::GameRender()
 	renderer_3d_->Begin();
 
 	// draw player
-	renderer_3d_->set_override_material(&primitive_builder_->red_material());
+	gef::Matrix44 playerScaleMatrix;
+	gef::Matrix44 playerTransformMatrix;
+	gef::Matrix44 playerRotationMatrix;
+
+	playerScaleMatrix.SetIdentity();
+	playerTransformMatrix.SetIdentity();
+	playerRotationMatrix.SetIdentity();
+
+	playerScaleMatrix.Scale(gef::Vector4(0.1f, 0.2f, 0.1f));
+	playerTransformMatrix = player_.transform();
+	float newRads = gef::DegToRad(90);
+	playerRotationMatrix.RotationY(newRads);
+
+	player_.set_transform((playerRotationMatrix * playerTransformMatrix) * playerScaleMatrix);
+
 	renderer_3d_->DrawMesh(player_);
-	renderer_3d_->set_override_material(NULL);
 
 	//Draw enemy
-	//renderer_3d_->DrawMesh(enemy);
 		gef::Matrix44 scaleMatrix;
 		gef::Matrix44 transformMatrix;
 		gef::Matrix44 rotationMatrix;
@@ -460,7 +478,7 @@ void SceneApp::GameRender()
 		scaleMatrix.SetIdentity();
 
 		scaleMatrix.Scale(gef::Vector4(0.2f, 0.2f, 0.2f));
-		float newRads = gef::DegToRad(90);
+		newRads = gef::DegToRad(90);
 		rotationMatrix.RotationY(newRads);
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -477,6 +495,16 @@ void SceneApp::GameRender()
 	sprite_renderer_->Begin(false);
 	sprite_renderer_->DrawSprite(touchSprite);
 	DrawHUD();
+
+	// Render Title Text
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 270.f, 0.f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Health %i", player_.getHealth());
+
 	sprite_renderer_->End();
 }
 

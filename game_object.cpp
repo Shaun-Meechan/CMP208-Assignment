@@ -32,11 +32,17 @@ void GameObject::MyCollisionResponse()
 Player::Player()
 {
 	set_type(PLAYER);
+	health = 100;
 }
 
 void Player::DecrementHealth()
 {
-	//gef::DebugOut("Player has taken damage.\n");
+	health--;
+}
+
+int Player::getHealth()
+{
+	return health;
 }
 
 Enemy::Enemy()
