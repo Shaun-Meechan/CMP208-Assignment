@@ -4,6 +4,7 @@
 #include <graphics/mesh_instance.h>
 #include <box2d/Box2D.h>
 #include <thread>
+#include <dos.h>
 
 enum OBJECT_TYPE
 {
@@ -28,10 +29,11 @@ class Player : public GameObject
 {
 public:
 	Player();
-	void DecrementHealth();
+	void DecrementHealth(float time);
 	int getHealth();
 private:
 	int health;
+	float lastDamageTime;
 };
 
 class Enemy : public GameObject

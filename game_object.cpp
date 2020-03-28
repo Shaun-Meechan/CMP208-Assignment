@@ -1,5 +1,6 @@
 #include "game_object.h"
 #include <system/debug_log.h>
+#include <dos.h>
 
 //
 // UpdateFromSimulation
@@ -33,11 +34,17 @@ Player::Player()
 {
 	set_type(PLAYER);
 	health = 100;
+	lastDamageTime = 0;
 }
 
-void Player::DecrementHealth()
+void Player::DecrementHealth(float time)
 {
-	health--;
+	if (lastDamageTime + 1 <= time)
+	{
+		//We last took damge 5 seconds ago, take damage again.
+		health--;
+		lastDamageTime = time;
+	}
 }
 
 int Player::getHealth()

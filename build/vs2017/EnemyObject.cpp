@@ -2,6 +2,7 @@
 
 EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world)
 {
+	health = 100;
 	// setup the mesh for the enemy
 	this->set_mesh(getMeshFromSceneAssets(sceneFile));
 	// create a physics body for the enemy

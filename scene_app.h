@@ -93,6 +93,7 @@ private:
 	gef::MeshInstance enemyMesh;
 	gef::Scene* enemySceneAsset;
 	gef::Scene* playerSceneAsset;
+	float gameTime;
 	//Game functions
 	void ProcessTouchInput();
 	//void setupEnemy();

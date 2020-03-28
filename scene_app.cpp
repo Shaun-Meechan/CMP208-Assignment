@@ -65,7 +65,6 @@ bool SceneApp::Update(float frame_time)
 {
 	fps_ = 1.0f / frame_time;
 
-
 	input_manager_->Update();
 
 	gef::Keyboard* keyboard = input_manager_->keyboard();
@@ -254,7 +253,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 			if (player && enemy)
 			{
 				gef::DebugOut("Player and enemy collision!\n");
-				player->DecrementHealth();
+				player->DecrementHealth(gameTime);
 			}
 
 			if (enemy)
@@ -328,6 +327,8 @@ void SceneApp::FrontendRender()
 
 void SceneApp::GameInit()
 {
+	//Initalize our time variable
+	gameTime = 0;
 	//Define how many enemies to make, if it is < 0 program will not respond
 	unsigned int enemiesToMake = 8;
 	// Make sure there is a panel to detect touch, activate if it exists
@@ -411,16 +412,18 @@ void SceneApp::GameRelease()
 
 void SceneApp::GameUpdate(float frame_time)
 {
+	gameTime = gameTime + frame_time;
+
 	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
 
 	//check all the alive enemies to see if they need to be killed
-	//for (int i = 0; i < enemies.size(); i++)
-	//{
-	//	if (enemies[i]->getHealth() <= 0)
-	//	{
-	//		enemies.erase(enemies.begin() + i);//Remove the now dead enemy
-	//	}
-	//}
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		if (enemies[i]->getHealth() <= 0)
+		{
+			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
+		}
+	}
 
 	UpdateSimulation(frame_time);
 
