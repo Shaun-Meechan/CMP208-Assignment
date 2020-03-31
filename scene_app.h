@@ -14,6 +14,7 @@
 #include <vector>
 #include <EnemyObject.h>
 #include <math.h>
+#include <hitDetectionObject.h>
 
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
@@ -68,6 +69,9 @@ private:
 	Player player_;
 	b2Body* player_body_;
 
+	// Hit detection object
+	hitDetectionObject* hitDetection;
+
 	// audio variables
 	int sfx_id_;
 	int sfx_voice_id_;
@@ -90,9 +94,22 @@ private:
 	gef::Sprite touchSprite;
 	int gunShotSampleID;
 	std::vector <EnemyObject*> enemies;
-	gef::MeshInstance enemyMesh;
 	gef::Scene* enemySceneAsset;
 	gef::Scene* playerSceneAsset;
+	gef::Matrix44 playerScaleMatrix;
+	gef::Matrix44 playerTranslationMatrix;
+	gef::Matrix44 playerRotationMatrix;
+	//Enemy matrices
+	gef::Matrix44 enemyScaleMatrix;
+	gef::Matrix44 enemyTranslationMatrix;
+	gef::Matrix44 enemyRotationMatrix;
+	//Hit detection temp vars
+	gef::Matrix44 hitScaleMatrix;
+	gef::Matrix44 hitTranslationMatrix;
+	gef::Matrix44 hitRotationMatrix;
+	int newX;
+	int newY;
+	bool testRender;
 	float gameTime;
 	//Game functions
 	void ProcessTouchInput();

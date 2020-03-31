@@ -27,7 +27,8 @@ SceneApp::SceneApp(gef::Platform& platform) :
 	audioManager(NULL),
 	activeTouchID(-1),
 	enemySceneAsset(NULL),
-	playerSceneAsset(NULL)
+	playerSceneAsset(NULL),
+	hitDetection(NULL)
 {
 }
 
@@ -198,10 +199,13 @@ void SceneApp::UpdateSimulation(float frame_time)
 
 	// update object visuals from simulation data
 	player_.UpdateFromSimulation(player_body_);
+
 	for (int i = 0; i < enemies.size(); i++)
 	{
 		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
 	}
+
+	hitDetection->UpdateFromSimulation(hitDetection->getBody());
 
 	// collision detection
 	// get the head of the contact list
@@ -220,6 +224,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 			// DO COLLISION RESPONSE HERE
 			Player* player = NULL;
 			Enemy* enemy = NULL;
+			hitDetectionObject* hitDectection = NULL;
 			GameObject* gameObjectA = NULL;
 			GameObject* gameObjectB = NULL;
 
@@ -368,14 +373,22 @@ void SceneApp::GameInit()
 	SetupLights();
 
 	// initialise the physics world
-	//b2Vec2 gravity(0.0f, -9.81f);
 	b2Vec2 gravity(0.0f, 0.0f);
 	world_ = new b2World(gravity);
 
 
 	InitPlayer();
+	float newRads = gef::DegToRad(90);
 
-	enemyMesh.set_mesh(getMeshFromSceneAssets(enemySceneAsset));
+	playerScaleMatrix.SetIdentity();
+	playerTranslationMatrix.SetIdentity();
+	playerRotationMatrix.SetIdentity();
+
+	playerScaleMatrix.Scale(gef::Vector4(0.1f, 0.2f, 0.1f));
+	playerTranslationMatrix.SetTranslation(gef::Vector4(5,-2,0));
+	playerRotationMatrix.RotationY(newRads);
+
+
 	for (int i = 0; i < enemiesToMake; i++)
 	{
 		enemies.push_back(new EnemyObject(enemySceneAsset,world_));
@@ -383,13 +396,30 @@ void SceneApp::GameInit()
 		enemies[i]->getBody()->SetUserData(enemies[i]);
 	}
 
+	enemyRotationMatrix.SetIdentity();
+	enemyTranslationMatrix.SetIdentity();
+	enemyScaleMatrix.SetIdentity();
+
+	enemyScaleMatrix.Scale(gef::Vector4(0.2f, 0.2f, 0.2f));
+	enemyRotationMatrix.RotationY(newRads);
+
 	//Move alive enemeies
 	for (int i = 0; i < enemies.size(); i++)
 	{
 		enemies[i]->getBody()->ApplyForceToCenter(b2Vec2(3, 0), true);
 	}
-	
-	
+
+	//Create our hit detection object
+	hitDetection = new hitDetectionObject(world_,primitive_builder_);
+	hitDetection->UpdateFromSimulation(hitDetection->getBody());
+	hitDetection->getBody()->SetUserData(hitDetection);
+
+	hitTranslationMatrix.SetIdentity();
+	hitScaleMatrix.SetIdentity();
+	hitRotationMatrix.SetIdentity();
+
+	newX = 0;
+	newY = 0;
 }
 
 void SceneApp::GameRelease()
@@ -405,6 +435,8 @@ void SceneApp::GameRelease()
 	renderer_3d_ = NULL;
 
 	enemies.clear();
+
+	gameTime = 0;
 
 	audioManager->UnloadSample(gunShotSampleID);
 
@@ -425,9 +457,9 @@ void SceneApp::GameUpdate(float frame_time)
 		}
 	}
 
-	UpdateSimulation(frame_time);
-
 	ProcessTouchInput();
+
+	UpdateSimulation(frame_time);
 }
 
 void SceneApp::GameRender()
@@ -442,7 +474,7 @@ void SceneApp::GameRender()
 	renderer_3d_->set_projection_matrix(projection_matrix);
 
 	// view
-	gef::Vector4 camera_eye(-2.0f, 2.0f, 10.0f);
+	gef::Vector4 camera_eye(-2.0f, 2.0f, 100.0f);
 	gef::Vector4 camera_lookat(0.0f, 0.0f, 0.0f);
 	gef::Vector4 camera_up(0.0f, 1.0f, 0.0f);
 	gef::Matrix44 view_matrix;
@@ -454,40 +486,24 @@ void SceneApp::GameRender()
 	renderer_3d_->Begin();
 
 	// draw player
-	gef::Matrix44 playerScaleMatrix;
-	gef::Matrix44 playerTransformMatrix;
-	gef::Matrix44 playerRotationMatrix;
-
-	playerScaleMatrix.SetIdentity();
-	playerTransformMatrix.SetIdentity();
-	playerRotationMatrix.SetIdentity();
-
-	playerScaleMatrix.Scale(gef::Vector4(0.1f, 0.2f, 0.1f));
-	playerTransformMatrix = player_.transform();
-	float newRads = gef::DegToRad(90);
-	playerRotationMatrix.RotationY(newRads);
-
-	player_.set_transform((playerRotationMatrix * playerTransformMatrix) * playerScaleMatrix);
-
+	playerTranslationMatrix = player_.transform();
+	//player_.set_transform((playerScaleMatrix * playerRotationMatrix) * playerTransformMatrix);
+	player_.set_transform((playerRotationMatrix * playerTranslationMatrix) * playerScaleMatrix);
 	renderer_3d_->DrawMesh(player_);
 
+	//Draw our hit detection object
+	hitDetection->set_transform((hitScaleMatrix * hitRotationMatrix) * hitTranslationMatrix);
+	//hitTransformMatrix = hitDetection->transform();
+	//hitDetection->set_transform((hitRotationMatrix * hitTransformMatrix) * hitScaleMatrix);
+	renderer_3d_->DrawMesh(*hitDetection);
+	//TEST VAR V: DELETE!
+	testRender = false;
 	//Draw enemy
-		gef::Matrix44 scaleMatrix;
-		gef::Matrix44 transformMatrix;
-		gef::Matrix44 rotationMatrix;
-
-		rotationMatrix.SetIdentity();
-		transformMatrix.SetIdentity();
-		scaleMatrix.SetIdentity();
-
-		scaleMatrix.Scale(gef::Vector4(0.2f, 0.2f, 0.2f));
-		newRads = gef::DegToRad(90);
-		rotationMatrix.RotationY(newRads);
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		transformMatrix = enemies[i]->transform();
+		enemyTranslationMatrix = enemies[i]->transform();
 
-		enemies[i]->set_transform((rotationMatrix * transformMatrix) * scaleMatrix );
+		enemies[i]->set_transform((enemyRotationMatrix * enemyTranslationMatrix) * enemyScaleMatrix );
 
 		renderer_3d_->DrawMesh(*enemies[i]);
 	}
@@ -552,14 +568,19 @@ void SceneApp::ProcessTouchInput()
 					activeTouchID = touch->id;
 
 					//Do any processing for a new touch here
-					///We're just going to record the postion of the touch
-					touchPosition = touch->position;
 
 					//move touch sprite
 					touchSprite.set_position(touch->position.x, touch->position.y, 0);
 
-					std::cout << "We are processing a touch at postion: " << touchPosition.x << " x and " << touchPosition.y << " y" << std::endl;
-
+					newX = touch->position.x;
+					newY = touch->position.y;
+					//hitTransformMatrix.SetTranslation(gef::Vector4(newX, newY, 0));
+					hitTranslationMatrix.SetTranslation(gef::Vector4(newX,newY,0));
+					hitDetection->UpdateFromSimulation(hitDetection->getBody());
+					//gef::DebugOut("Hit detection object transform", hitDetection->transform());
+					gef::DebugOut("Hit detection object transform x %f\n", hitDetection->getBody()->GetPosition().x);
+					gef::DebugOut("Hit detection object transform y %f\n", hitDetection->getBody()->GetPosition().y);
+					testRender = true;
 					audioManager->PlaySample(gunShotSampleID,false);
 				}
 			}
