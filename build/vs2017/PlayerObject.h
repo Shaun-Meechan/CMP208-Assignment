@@ -1,25 +1,24 @@
 #pragma once
 
 #include <game_object.h>
-#include <box2d/Box2D.h>
+#include <box2d/box2d.h>
 #include "graphics/scene.h"
 #include <maths/vector4.h>
-#include <graphics/renderer_3d.h>
 #include <maths/math_utils.h>
+#include <graphics/renderer_3d.h>
 
 namespace gef
 {
 	class Renderer3D;
 }
 
-class EnemyObject: public GameObject
+class PlayerObject: public GameObject
 {
 public:
-	EnemyObject(gef::Scene* sceneFile, b2World* world, b2Vec2 spawnPosition);
+	void init(gef::Scene* sceneFile, b2World* world);
 	b2Body* getBody();
 	int getHealth();
-	void decrementHealth(int value);
-	void render(gef::Renderer3D* renderer_3d_);
+	void decrementHealth(float time);
 	//Transform functions
 	void updateScale(gef::Vector4 scaleVector);
 	void updateRotationX(float degrees);
@@ -27,19 +26,18 @@ public:
 	void updateRotationZ(float degrees);
 	void translate(gef::Vector4 translationVector);
 	void update();
+	void render(gef::Renderer3D* renderer_3d_);
 private:
+	gef::Mesh* getMeshFromSceneAssets(gef::Scene* scene);
 	b2Body* body;
 	b2BodyDef bodyDef;
 	b2PolygonShape shape;
 	b2FixtureDef fixtureDef;
-	gef::MeshInstance enemyMesh;
-	b2Vec2* spawnPoints[3];
-	gef::Mesh* getMeshFromSceneAssets(gef::Scene* scene);
 	int health;
+	float lastDamageTime;
 	gef::Vector4 objectTranslation;
 	gef::Matrix44 scaleMatrix;
 	gef::Matrix44 rotationMatrix;
 	gef::Matrix44 translationMatrix;
-
 };
 

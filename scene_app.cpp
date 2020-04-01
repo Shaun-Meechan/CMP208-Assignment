@@ -21,7 +21,6 @@ SceneApp::SceneApp(gef::Platform& platform) :
 	input_manager_(NULL),
 	font_(NULL),
 	world_(NULL),
-	player_body_(NULL),
 	button_icon_(NULL),
 	backgroundSprite(NULL),
 	audioManager(NULL),
@@ -119,37 +118,6 @@ void SceneApp::Render()
 	}
 }
 
-void SceneApp::InitPlayer()
-{
-	// setup the mesh for the player
-	player_.set_mesh(getMeshFromSceneAssets(playerSceneAsset));
-
-	// create a physics body for the player
-	b2BodyDef player_body_def;
-	player_body_def.type = b2_dynamicBody;
-	player_body_def.position = b2Vec2(60.0f, -10.0f);
-
-	player_body_ = world_->CreateBody(&player_body_def);
-
-	// create the shape for the player
-	b2PolygonShape player_shape;
-	player_shape.SetAsBox(57, platform_.height());
-
-	// create the fixture
-	b2FixtureDef player_fixture_def;
-	player_fixture_def.shape = &player_shape;
-	player_fixture_def.density = 1.0f;
-
-	// create the fixture on the rigid body
-	player_body_->CreateFixture(&player_fixture_def);
-
-	// update visuals from simulation data
-	player_.UpdateFromSimulation(player_body_);
-
-	// create a connection between the rigid body and GameObject
-	player_body_->SetUserData(&player_);
-}
-
 void SceneApp::InitFont()
 {
 	font_ = new gef::Font(platform_);
@@ -190,7 +158,7 @@ void SceneApp::SetupLights()
 void SceneApp::UpdateSimulation(float frame_time)
 {
 	// update physics world
-	float timeStep = 1.0f / 60.0f;
+	float timeStep = 1.0f / 60.f;
 
 	int32 velocityIterations = 6;
 	int32 positionIterations = 2;
@@ -198,7 +166,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 	world_->Step(timeStep, velocityIterations, positionIterations);
 
 	// update object visuals from simulation data
-	player_.UpdateFromSimulation(player_body_);
+	Player.UpdateFromSimulation(Player.getBody());
 
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -222,7 +190,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 			b2Body* bodyB = contact->GetFixtureB()->GetBody();
 
 			// DO COLLISION RESPONSE HERE
-			Player* player = NULL;
+			PlayerObject* player = NULL;
 			Enemy* enemy = NULL;
 			hitDetectionObject* hitDectection = NULL;
 			GameObject* gameObjectA = NULL;
@@ -235,7 +203,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 			{
 				if (gameObjectA->type() == PLAYER)
 				{
-					player = (Player*)bodyA->GetUserData();
+					player = (PlayerObject*)bodyA->GetUserData();
 				}
 				else if (gameObjectA->type() == ENEMY)
 				{
@@ -247,7 +215,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 			{
 				if (gameObjectB->type() == PLAYER)
 				{
-					player = (Player*)bodyB->GetUserData();
+					player = (PlayerObject*)bodyB->GetUserData();
 				}
 				else if (gameObjectB->type() == ENEMY)
 				{
@@ -258,7 +226,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 			if (player && enemy)
 			{
 				gef::DebugOut("Player and enemy collision!\n");
-				player->DecrementHealth(gameTime);
+				player->decrementHealth(gameTime);
 			}
 
 			if (enemy)
@@ -376,33 +344,16 @@ void SceneApp::GameInit()
 	b2Vec2 gravity(0.0f, 0.0f);
 	world_ = new b2World(gravity);
 
-
-	InitPlayer();
-	float newRads = gef::DegToRad(90);
-
-	playerScaleMatrix.SetIdentity();
-	playerTranslationMatrix.SetIdentity();
-	playerRotationMatrix.SetIdentity();
-
-	playerScaleMatrix.Scale(gef::Vector4(0.1f, 0.2f, 0.1f));
-	playerTranslationMatrix.SetTranslation(gef::Vector4(5,-2,0));
-	playerRotationMatrix.RotationY(newRads);
-
+	//Setup player
+	Player.init(playerSceneAsset, world_);
+	Player.updateScale(gef::Vector4(0.1f, 0.2f, 0.1f));
+	Player.updateRotationY(90);
 
 	for (int i = 0; i < enemiesToMake; i++)
 	{
-		enemies.push_back(new EnemyObject(enemySceneAsset,world_));
-		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
-		enemies[i]->getBody()->SetUserData(enemies[i]);
+		enemies.push_back(new EnemyObject(enemySceneAsset,world_, b2Vec2(i-10,-i)));
+		//enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
 	}
-
-	enemyRotationMatrix.SetIdentity();
-	enemyTranslationMatrix.SetIdentity();
-	enemyScaleMatrix.SetIdentity();
-
-	enemyScaleMatrix.Scale(gef::Vector4(0.2f, 0.2f, 0.2f));
-	enemyRotationMatrix.RotationY(newRads);
-
 	//Move alive enemeies
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -444,13 +395,15 @@ void SceneApp::GameRelease()
 
 void SceneApp::GameUpdate(float frame_time)
 {
-	gameTime = gameTime + frame_time;
-
 	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
+
+	gameTime = gameTime + frame_time;
+	Player.update();
 
 	//check all the alive enemies to see if they need to be killed
 	for (int i = 0; i < enemies.size(); i++)
 	{
+		enemies[i]->update();
 		if (enemies[i]->getHealth() <= 0)
 		{
 			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
@@ -474,45 +427,36 @@ void SceneApp::GameRender()
 	renderer_3d_->set_projection_matrix(projection_matrix);
 
 	// view
-	gef::Vector4 camera_eye(-2.0f, 2.0f, 100.0f);
+	gef::Vector4 camera_eye(-2.0f, 2.0f, 15.0f);
 	gef::Vector4 camera_lookat(0.0f, 0.0f, 0.0f);
 	gef::Vector4 camera_up(0.0f, 1.0f, 0.0f);
 	gef::Matrix44 view_matrix;
 	view_matrix.LookAt(camera_eye, camera_lookat, camera_up);
 	renderer_3d_->set_view_matrix(view_matrix);
 
-
 	// draw 3d geometry
 	renderer_3d_->Begin();
 
 	// draw player
-	playerTranslationMatrix = player_.transform();
-	//player_.set_transform((playerScaleMatrix * playerRotationMatrix) * playerTransformMatrix);
-	player_.set_transform((playerRotationMatrix * playerTranslationMatrix) * playerScaleMatrix);
-	renderer_3d_->DrawMesh(player_);
+	Player.render(renderer_3d_);	
 
 	//Draw our hit detection object
 	hitDetection->set_transform((hitScaleMatrix * hitRotationMatrix) * hitTranslationMatrix);
 	//hitTransformMatrix = hitDetection->transform();
 	//hitDetection->set_transform((hitRotationMatrix * hitTransformMatrix) * hitScaleMatrix);
 	renderer_3d_->DrawMesh(*hitDetection);
-	//TEST VAR V: DELETE!
-	testRender = false;
+	testRender = false;//Can be used for debugging renderer (use as a condition = true)
 	//Draw enemy
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		enemyTranslationMatrix = enemies[i]->transform();
-
-		enemies[i]->set_transform((enemyRotationMatrix * enemyTranslationMatrix) * enemyScaleMatrix );
-
-		renderer_3d_->DrawMesh(*enemies[i]);
+		enemies[i]->render(renderer_3d_);
 	}
 
 	renderer_3d_->End();
 
 	// start drawing sprites, but don't clear the frame buffer
 	sprite_renderer_->Begin(false);
-	sprite_renderer_->DrawSprite(touchSprite);
+	//sprite_renderer_->DrawSprite(touchSprite);
 	DrawHUD();
 
 	// Render Title Text
@@ -522,7 +466,7 @@ void SceneApp::GameRender()
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
-		"Health %i", player_.getHealth());
+		"Health %i", Player.getHealth());
 
 	sprite_renderer_->End();
 }

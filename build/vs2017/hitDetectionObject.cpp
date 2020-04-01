@@ -4,7 +4,10 @@ hitDetectionObject::hitDetectionObject(b2World* world, PrimitiveBuilder* pb)
 {
 	this->set_mesh(pb->GetDefaultCubeMesh());
 
-	bodyDef.type = b2_dynamicBody;
+	bodyDef.type = b2_staticBody;
+
+	bodyDef.position = b2Vec2(-10,0);
+
 
 	body = world->CreateBody(&bodyDef);
 
