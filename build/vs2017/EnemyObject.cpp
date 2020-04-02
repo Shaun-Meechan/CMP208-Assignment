@@ -1,7 +1,7 @@
 #include "EnemyObject.h"
 #include <system\debug_log.h>
 
-EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world, b2Vec2 spawnPos)
+EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world)
 {
 	health = 100;
 	// setup the mesh for the enemy
@@ -15,9 +15,6 @@ EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world, b2Vec2 spawnPos)
 	spawnPoints[2] = new b2Vec2(-10, -5);
 
 	int randomNumber = rand() % 3;
-
-	//bodyDef.position.x = spawnPos.x;
-	//bodyDef.position.y = spawnPos.y;
 
 	switch (randomNumber)
 	{

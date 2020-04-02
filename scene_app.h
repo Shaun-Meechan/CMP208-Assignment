@@ -98,12 +98,6 @@ private:
 	PlayerObject Player;
 	gef::Scene* enemySceneAsset;
 	gef::Scene* playerSceneAsset;
-	//Hit detection temp vars
-	gef::Matrix44 hitScaleMatrix;
-	gef::Matrix44 hitTranslationMatrix;
-	gef::Matrix44 hitRotationMatrix;
-	int newX;
-	int newY;
 	bool testRender;
 	float gameTime;
 	//Game functions

@@ -15,7 +15,7 @@ namespace gef
 class EnemyObject: public GameObject
 {
 public:
-	EnemyObject(gef::Scene* sceneFile, b2World* world, b2Vec2 spawnPosition);
+	EnemyObject(gef::Scene* sceneFile, b2World* world);
 	b2Body* getBody();
 	int getHealth();
 	void decrementHealth(int value);

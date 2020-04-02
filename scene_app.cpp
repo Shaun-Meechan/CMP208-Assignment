@@ -229,7 +229,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 				player->decrementHealth(gameTime);
 			}
 
-			if (enemy)
+			if (enemy && hitDectection)
 			{
 				enemy->DecrementHealth();
 			}
@@ -341,7 +341,7 @@ void SceneApp::GameInit()
 	SetupLights();
 
 	// initialise the physics world
-	b2Vec2 gravity(0.0f, 0.0f);
+	b2Vec2 gravity(0.0f,0.0f);
 	world_ = new b2World(gravity);
 
 	//Setup player
@@ -351,9 +351,9 @@ void SceneApp::GameInit()
 
 	for (int i = 0; i < enemiesToMake; i++)
 	{
-		enemies.push_back(new EnemyObject(enemySceneAsset,world_, b2Vec2(i-10,-i)));
-		//enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
+		enemies.push_back(new EnemyObject(enemySceneAsset,world_));
 	}
+
 	//Move alive enemeies
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -362,15 +362,7 @@ void SceneApp::GameInit()
 
 	//Create our hit detection object
 	hitDetection = new hitDetectionObject(world_,primitive_builder_);
-	hitDetection->UpdateFromSimulation(hitDetection->getBody());
-	hitDetection->getBody()->SetUserData(hitDetection);
-
-	hitTranslationMatrix.SetIdentity();
-	hitScaleMatrix.SetIdentity();
-	hitRotationMatrix.SetIdentity();
-
-	newX = 0;
-	newY = 0;
+	hitDetection->updateScale(gef::Vector4(2.0f, 2.0f, 1.0f));
 }
 
 void SceneApp::GameRelease()
@@ -390,7 +382,6 @@ void SceneApp::GameRelease()
 	gameTime = 0;
 
 	audioManager->UnloadSample(gunShotSampleID);
-
 }
 
 void SceneApp::GameUpdate(float frame_time)
@@ -399,6 +390,7 @@ void SceneApp::GameUpdate(float frame_time)
 
 	gameTime = gameTime + frame_time;
 	Player.update();
+	hitDetection->update();
 
 	//check all the alive enemies to see if they need to be killed
 	for (int i = 0; i < enemies.size(); i++)
@@ -441,11 +433,9 @@ void SceneApp::GameRender()
 	Player.render(renderer_3d_);	
 
 	//Draw our hit detection object
-	hitDetection->set_transform((hitScaleMatrix * hitRotationMatrix) * hitTranslationMatrix);
-	//hitTransformMatrix = hitDetection->transform();
-	//hitDetection->set_transform((hitRotationMatrix * hitTransformMatrix) * hitScaleMatrix);
-	renderer_3d_->DrawMesh(*hitDetection);
-	testRender = false;//Can be used for debugging renderer (use as a condition = true)
+	testRender = false; //Can be used for debugging renderer (use as a condition = true)
+	hitDetection->render(renderer_3d_);
+
 	//Draw enemy
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -456,7 +446,7 @@ void SceneApp::GameRender()
 
 	// start drawing sprites, but don't clear the frame buffer
 	sprite_renderer_->Begin(false);
-	//sprite_renderer_->DrawSprite(touchSprite);
+	sprite_renderer_->DrawSprite(touchSprite);
 	DrawHUD();
 
 	// Render Title Text
@@ -516,16 +506,9 @@ void SceneApp::ProcessTouchInput()
 					//move touch sprite
 					touchSprite.set_position(touch->position.x, touch->position.y, 0);
 
-					newX = touch->position.x;
-					newY = touch->position.y;
-					//hitTransformMatrix.SetTranslation(gef::Vector4(newX, newY, 0));
-					hitTranslationMatrix.SetTranslation(gef::Vector4(newX,newY,0));
-					hitDetection->UpdateFromSimulation(hitDetection->getBody());
-					//gef::DebugOut("Hit detection object transform", hitDetection->transform());
-					gef::DebugOut("Hit detection object transform x %f\n", hitDetection->getBody()->GetPosition().x);
-					gef::DebugOut("Hit detection object transform y %f\n", hitDetection->getBody()->GetPosition().y);
+					hitDetection->translate(gef::Vector4(touch->position.x, touch->position.y, 1));
 					testRender = true;
-					audioManager->PlaySample(gunShotSampleID,false);
+					//audioManager->PlaySample(gunShotSampleID,false);
 				}
 			}
 			else if (activeTouchID == touch->id)

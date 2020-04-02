@@ -13,7 +13,7 @@ void PlayerObject::init(gef::Scene* sceneFile, b2World* world)
 	body = world->CreateBody(&bodyDef);
 
 	// create the shape for the player
-	shape.SetAsBox(0.5f, 100.0f);
+	shape.SetAsBox(7.0f, 100.0f);
 
 	// create the fixture
 	fixtureDef.shape = &shape;
