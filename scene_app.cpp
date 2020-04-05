@@ -1,4 +1,4 @@
-#include "scene_app.h"
+﻿#include "scene_app.h"
 #include <system/platform.h>
 #include <graphics/sprite_renderer.h>
 #include <graphics/font.h>
@@ -43,6 +43,9 @@ void SceneApp::Init()
 	audioManager = gef::AudioManager::Create();
 
 	FrontendInit();
+
+	//Debug bool for testing render functions
+	testRender = false;
 }
 
 void SceneApp::CleanUp()
@@ -349,7 +352,7 @@ void SceneApp::GameInit()
 	Player.updateScale(gef::Vector4(0.1f, 0.2f, 0.1f));
 	Player.updateRotationY(90);
 
-	for (int i = 0; i < enemiesToMake; i++)
+	for (unsigned int i = 0; i < enemiesToMake; i++)
 	{
 		enemies.push_back(new EnemyObject(enemySceneAsset,world_));
 	}
@@ -399,6 +402,7 @@ void SceneApp::GameUpdate(float frame_time)
 		if (enemies[i]->getHealth() <= 0)
 		{
 			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
+			Player.addCredits(10);
 		}
 	}
 
@@ -452,11 +456,19 @@ void SceneApp::GameRender()
 	// Render Title Text
 	font_->RenderText(
 		sprite_renderer_,
-		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 270.f, 0.f),
+		gef::Vector4(platform_.width() * 0.5f + 400.0f, platform_.height() * 0.5f - 270.f, 0.f),
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
 		"Health %i", Player.getHealth());
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f + 400.0f, platform_.height() * 0.5f - 250.0f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Credits: %i", Player.getCredits());
 
 	sprite_renderer_->End();
 }
@@ -506,9 +518,34 @@ void SceneApp::ProcessTouchInput()
 					//move touch sprite
 					touchSprite.set_position(touch->position.x, touch->position.y, 0);
 
-					hitDetection->translate(gef::Vector4(touch->position.x, touch->position.y, 1));
+					// convert the touch position to a ray that starts on the camera near plane
+					// and shoots into the camera view frustum
+					gef::Vector2 screen_position = touch->position;
+					gef::Vector4 ray_start_position, ray_direction;
+					GetScreenPosRay(screen_position, renderer_3d_->projection_matrix(), renderer_3d_->view_matrix(), ray_start_position, ray_direction);
+
+					//Here we need to loop through all the enemy bodies and see if the player hit them.
+
+					for (int i = 0; i < enemies.size(); i++)
+					{
+						if (enemies	[i]->getBody())
+						{
+							// Create a sphere around the position of the player body
+							// the radius can be changed for larger objects
+							// radius= 0.5f is a sensible value for a 1x1x1 cube
+							gef::Vector4 sphere_centre(enemies[i]->getBody()->GetPosition().x, enemies[i]->getBody()->GetPosition().y, 0.0f);
+							float  sphere_radius = 1.5f;
+
+							// check to see if the ray intersects with the bound sphere that is around the player
+							if (RaySphereIntersect(ray_start_position, ray_direction, sphere_centre, sphere_radius))
+							{
+								//Player touched an enemy do something
+								enemies[i]->decrementHealth(10); //Lower this by the damage of the current weapon
+							}
+						}
+					}
+					audioManager->PlaySample(gunShotSampleID, false);
 					testRender = true;
-					//audioManager->PlaySample(gunShotSampleID,false);
 				}
 			}
 			else if (activeTouchID == touch->id)
@@ -552,4 +589,59 @@ gef::Mesh* SceneApp::getMeshFromSceneAssets(gef::Scene* scene)
 		mesh = scene->meshes.front();
 
 	return mesh;
+}
+
+//Code from Polishing a Game from MLS
+void SceneApp::GetScreenPosRay(const gef::Vector2& screen_position, const gef::Matrix44& projection, const gef::Matrix44& view, gef::Vector4& startPoint, gef::Vector4& direction)
+{
+	gef::Vector2 ndc;
+
+	float hw = platform_.width() * 0.5f;
+	float hh = platform_.height() * 0.5f;
+
+	ndc.x = (static_cast<float>(screen_position.x) - hw) / hw;
+	ndc.y = (hh - static_cast<float>(screen_position.y)) / hh;
+
+	gef::Matrix44 projectionInverse;
+	projectionInverse.Inverse(view * projection);
+
+	gef::Vector4 nearPoint, farPoint;
+
+	nearPoint = gef::Vector4(ndc.x, ndc.y, ndc_z_min_, 1.0f).TransformW(projectionInverse);
+	farPoint = gef::Vector4(ndc.x, ndc.y, 1.0f, 1.0f).TransformW(projectionInverse);
+
+	nearPoint /= nearPoint.w();
+	farPoint /= farPoint.w();
+
+	startPoint = gef::Vector4(nearPoint.x(), nearPoint.y(), nearPoint.z());
+	direction = farPoint - nearPoint;
+	direction.Normalise();
+}
+
+//Code from Polishing a Game from MLS
+bool SceneApp::RaySphereIntersect(gef::Vector4& startPoint, gef::Vector4& direction, gef::Vector4& sphere_centre, float sphere_radius)
+{
+	gef::Vector4 m = startPoint - sphere_centre;
+	float b = m.DotProduct(direction);
+	float c = m.LengthSqr() - sphere_radius * sphere_radius;
+
+	// Exit if rays origin outside sphere (c > 0) and ray pointing away from sphere (b > 0) 
+	if (c > 0.0f && b > 0.0f)
+		return false;
+	float discr = b * b - c;
+
+	// A negative discriminant corresponds to ray missing sphere 
+	if (discr < 0.0f)
+		return false;
+
+	// Ray now found to intersect sphere, compute smallest t value of intersection
+	float t = -b - sqrtf(discr);
+
+	// If t is negative, ray started inside sphere so clamp t to zero 
+	if (t < 0.0f)
+		t = 0.0f;
+
+	gef::Vector4 hitpoint = startPoint + direction * t;
+
+	return true;
 }

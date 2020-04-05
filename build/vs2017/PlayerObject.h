@@ -19,6 +19,9 @@ public:
 	b2Body* getBody();
 	int getHealth();
 	void decrementHealth(float time);
+	int getCredits();
+	void addCredits(int value);
+	void decrementCredits(int value);
 	//Transform functions
 	void updateScale(gef::Vector4 scaleVector);
 	void updateRotationX(float degrees);
@@ -39,5 +42,6 @@ private:
 	gef::Matrix44 scaleMatrix;
 	gef::Matrix44 rotationMatrix;
 	gef::Matrix44 translationMatrix;
+	unsigned int credits;
 };
 

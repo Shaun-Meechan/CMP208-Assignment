@@ -100,11 +100,14 @@ private:
 	gef::Scene* playerSceneAsset;
 	bool testRender;
 	float gameTime;
+	//Used for 2D -> 3D projection
+	float ndc_z_min_;
 	//Game functions
 	void ProcessTouchInput();
-	//void setupEnemy();
 	gef::Scene* LoadSceneAssets(gef::Platform& platform, const char* filename);
 	gef::Mesh* getMeshFromSceneAssets(gef::Scene* scene);
+	void GetScreenPosRay(const gef::Vector2& screen_position, const gef::Matrix44& projection, const gef::Matrix44& view, gef::Vector4& startPoint, gef::Vector4& direction);
+	bool RaySphereIntersect(gef::Vector4& startPoint, gef::Vector4& direction, gef::Vector4& sphere_centre, float sphere_radius);
 	// Global Functions
 	void updateStateMachine(int ID);
 };

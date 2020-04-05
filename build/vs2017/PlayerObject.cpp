@@ -2,6 +2,7 @@
 
 void PlayerObject::init(gef::Scene* sceneFile, b2World* world)
 {
+	credits = 0;
 	health = 100;
 	// setup the mesh for the enemy
 	this->set_mesh(getMeshFromSceneAssets(sceneFile));
@@ -53,6 +54,21 @@ void PlayerObject::decrementHealth(float time)
 		health--;
 		lastDamageTime = time;
 	}
+}
+
+int PlayerObject::getCredits()
+{
+	return credits;
+}
+
+void PlayerObject::addCredits(int value)
+{
+	credits = credits + value;
+}
+
+void PlayerObject::decrementCredits(int value)
+{
+	credits = credits - value;
 }
 
 gef::Mesh* PlayerObject::getMeshFromSceneAssets(gef::Scene* scene)
