@@ -26,8 +26,7 @@ SceneApp::SceneApp(gef::Platform& platform) :
 	audioManager(NULL),
 	activeTouchID(-1),
 	enemySceneAsset(NULL),
-	playerSceneAsset(NULL),
-	hitDetection(NULL)
+	playerSceneAsset(NULL)
 {
 }
 
@@ -85,6 +84,8 @@ bool SceneApp::Update(float frame_time)
 			case SceneApp::Level1:
 				updateStateMachine(0);
 				break;
+			case SceneApp::Store:
+				updateStateMachine(1);
 			default:
 				break;
 			}
@@ -98,6 +99,9 @@ bool SceneApp::Update(float frame_time)
 		break;
 	case SceneApp::Level1:
 		GameUpdate(frame_time);
+		break;
+	case SceneApp::Store:
+		StoreUpdate(frame_time);
 		break;
 	default:
 		break;
@@ -115,6 +119,9 @@ void SceneApp::Render()
 		break;
 	case SceneApp::Level1:
 		GameRender();
+		break;
+	case SceneApp::Store:
+		StoreRender();
 		break;
 	default:
 		break;
@@ -175,8 +182,6 @@ void SceneApp::UpdateSimulation(float frame_time)
 	{
 		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
 	}
-
-	hitDetection->UpdateFromSimulation(hitDetection->getBody());
 
 	// collision detection
 	// get the head of the contact list
@@ -362,10 +367,6 @@ void SceneApp::GameInit()
 	{
 		enemies[i]->getBody()->ApplyForceToCenter(b2Vec2(3, 0), true);
 	}
-
-	//Create our hit detection object
-	hitDetection = new hitDetectionObject(world_,primitive_builder_);
-	hitDetection->updateScale(gef::Vector4(2.0f, 2.0f, 1.0f));
 }
 
 void SceneApp::GameRelease()
@@ -380,6 +381,12 @@ void SceneApp::GameRelease()
 	delete renderer_3d_;
 	renderer_3d_ = NULL;
 
+	delete enemySceneAsset;
+	enemySceneAsset = NULL;
+
+	delete playerSceneAsset;
+	playerSceneAsset = NULL;
+
 	enemies.clear();
 
 	gameTime = 0;
@@ -393,7 +400,6 @@ void SceneApp::GameUpdate(float frame_time)
 
 	gameTime = gameTime + frame_time;
 	Player.update();
-	hitDetection->update();
 
 	//check all the alive enemies to see if they need to be killed
 	for (int i = 0; i < enemies.size(); i++)
@@ -404,11 +410,17 @@ void SceneApp::GameUpdate(float frame_time)
 			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
 			Player.addCredits(10);
 		}
+
 	}
 
 	ProcessTouchInput();
 
 	UpdateSimulation(frame_time);
+
+	if (enemies.size() == 0)
+	{
+		updateStateMachine(2);
+	}
 }
 
 void SceneApp::GameRender()
@@ -436,10 +448,6 @@ void SceneApp::GameRender()
 	// draw player
 	Player.render(renderer_3d_);	
 
-	//Draw our hit detection object
-	testRender = false; //Can be used for debugging renderer (use as a condition = true)
-	hitDetection->render(renderer_3d_);
-
 	//Draw enemy
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -450,7 +458,7 @@ void SceneApp::GameRender()
 
 	// start drawing sprites, but don't clear the frame buffer
 	sprite_renderer_->Begin(false);
-	sprite_renderer_->DrawSprite(touchSprite);
+	//sprite_renderer_->DrawSprite(touchSprite);
 	DrawHUD();
 
 	// Render Title Text
@@ -473,6 +481,38 @@ void SceneApp::GameRender()
 	sprite_renderer_->End();
 }
 
+void SceneApp::StoreInit()
+{
+	audioManager->LoadMusic("StoreMusic.wav", platform_);
+	audioManager->PlayMusic();
+
+	storeItem[0] = new StoreItem("playstation-circle-dark-icon.png", &platform_);
+
+	storeItem[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f,0));
+}
+
+void SceneApp::StoreRelease()
+{
+	delete storeItem[0];
+
+	audioManager->StopMusic();
+	audioManager->UnloadMusic();
+}
+
+void SceneApp::StoreUpdate(float frame_time)
+{
+}
+
+void SceneApp::StoreRender()
+{
+	sprite_renderer_->Begin();
+	
+	for (int i = 0; i < 1; i++)
+	{
+		sprite_renderer_->DrawSprite(*storeItem[i]);
+	}
+}
+
 void SceneApp::updateStateMachine(int ID)
 {
 	switch (ID)
@@ -484,9 +524,14 @@ void SceneApp::updateStateMachine(int ID)
 		break;
 	case 1:
 		FrontendRelease();
+		StoreRelease();
 		GameInit();
 		gameState = Level1;
 		break;
+	case 2:
+		GameRelease();
+		StoreInit();
+		gameState = Store;
 	default:
 		break;
 	}
@@ -544,7 +589,7 @@ void SceneApp::ProcessTouchInput()
 							}
 						}
 					}
-					audioManager->PlaySample(gunShotSampleID, false);
+					//audioManager->PlaySample(gunShotSampleID, false);
 					testRender = true;
 				}
 			}
