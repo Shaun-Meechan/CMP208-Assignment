@@ -79,13 +79,13 @@ bool SceneApp::Update(float frame_time)
 			switch (gameState)
 			{
 			case SceneApp::INIT:
-				updateStateMachine(1);
+				updateStateMachine(1,0);
 				break;
 			case SceneApp::Level1:
-				updateStateMachine(0);
+				updateStateMachine(0,1);
 				break;
 			case SceneApp::Store:
-				updateStateMachine(1);
+				updateStateMachine(1,2);
 			default:
 				break;
 			}
@@ -419,7 +419,7 @@ void SceneApp::GameUpdate(float frame_time)
 
 	if (enemies.size() == 0)
 	{
-		updateStateMachine(2);
+		updateStateMachine(2,1);
 	}
 }
 
@@ -486,14 +486,23 @@ void SceneApp::StoreInit()
 	audioManager->LoadMusic("StoreMusic.wav", platform_);
 	audioManager->PlayMusic();
 
-	storeItem[0] = new StoreItem("playstation-circle-dark-icon.png", &platform_);
+	storeItem.push_back(new StoreItem("playstation-circle-dark-icon.png", &platform_, 100));
+	storeItem[0]->set_position(gef::Vector4(platform_.width() * 0.25f, platform_.height() * 0.5f,0));
 
-	storeItem[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f,0));
+	storeItem.push_back(new StoreItem("playstation-square-dark-icon.png", &platform_, 150));
+	storeItem[1]->set_position(gef::Vector4(platform_.width() * 0.50f, platform_.height() * 0.5f, 0));
+
+	storeItem.push_back(new StoreItem("playstation-triangle-dark-icon.png", &platform_,2100));
+	storeItem[2]->set_position(gef::Vector4(platform_.width() * 0.75f, platform_.height() * 0.5f, 0));
+
 }
 
 void SceneApp::StoreRelease()
 {
-	delete storeItem[0];
+	for (int i = 0; i < storeItem.size(); i++)
+	{
+		delete storeItem[i];
+	}
 
 	audioManager->StopMusic();
 	audioManager->UnloadMusic();
@@ -507,28 +516,44 @@ void SceneApp::StoreRender()
 {
 	sprite_renderer_->Begin();
 	
-	for (int i = 0; i < 1; i++)
+	for (int i = 0; i < storeItem.size(); i++)
 	{
 		sprite_renderer_->DrawSprite(*storeItem[i]);
+
+		font_->RenderText(
+			sprite_renderer_,
+			gef::Vector4(storeItem[i]->position().x(), storeItem[i]->position().y() + 50.0f, 0.0f),
+			1.0f,
+			0xffffffff,
+			gef::TJ_CENTRE,
+			"%i", storeItem[i]->getCost());
+
 	}
 }
 
-void SceneApp::updateStateMachine(int ID)
+//New ID represent where we want to go. Old represent where we came from.
+void SceneApp::updateStateMachine(int newID, int oldID)
 {
-	switch (ID)
+	switch (newID)
 	{
-	case 0:
+	case 0://Front end
 		GameRelease();
 		FrontendInit();
 		gameState = INIT;
 		break;
-	case 1:
-		FrontendRelease();
-		StoreRelease();
+	case 1://Game
+		if (oldID == 0)
+		{
+			FrontendRelease();
+		}
+		else
+		{
+			StoreRelease();
+		}
 		GameInit();
 		gameState = Level1;
 		break;
-	case 2:
+	case 2://Store
 		GameRelease();
 		StoreInit();
 		gameState = Store;

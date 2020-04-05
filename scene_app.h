@@ -110,9 +110,9 @@ private:
 	bool RaySphereIntersect(gef::Vector4& startPoint, gef::Vector4& direction, gef::Vector4& sphere_centre, float sphere_radius);
 
 	//Store Variables
-	StoreItem* storeItem[];
+	std::vector<StoreItem*> storeItem;
 	// Global Functions
-	void updateStateMachine(int ID);
+	void updateStateMachine(int newID, int oldID);
 };
 
 #endif // _SCENE_APP_H

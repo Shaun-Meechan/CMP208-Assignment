@@ -10,7 +10,8 @@ namespace gef
 class StoreItem: public gef::Sprite
 {
 public:
-	StoreItem(const char* pngFileName, gef::Platform* platform);
+	StoreItem(const char* pngFileName, gef::Platform* platform, int newCost);
+	int getCost();
 private:
 	gef::Texture* icon;
 	unsigned int cost;
