@@ -1,9 +1,7 @@
 #include "PlayerObject.h"
 
-PlayerObject::PlayerObject(gef::Scene* sceneFile, b2World* world, Weapon* weapon)
+PlayerObject::PlayerObject(gef::Scene* sceneFile, b2World* world)
 {
-	credits = 0;
-	health = 100;
 	// setup the mesh for the enemy
 	this->set_mesh(getMeshFromSceneAssets(sceneFile));
 	// create a physics body for the enemy
@@ -35,7 +33,7 @@ PlayerObject::PlayerObject(gef::Scene* sceneFile, b2World* world, Weapon* weapon
 	rotationMatrix.SetIdentity();
 	translationMatrix.SetIdentity();
 
-	activeWeapon = weapon;
+	return;
 }
 
 b2Body* PlayerObject::getBody()
@@ -43,34 +41,14 @@ b2Body* PlayerObject::getBody()
 	return body;
 }
 
-int PlayerObject::getHealth()
-{
-	return health;
-}
-
 void PlayerObject::decrementHealth(float time)
 {
 	if (lastDamageTime + 1 <= time)
 	{
 		//We last took damge 1 second ago, take damage again.
-		health--;
 		lastDamageTime = time;
 	}
-}
-
-int PlayerObject::getCredits()
-{
-	return credits;
-}
-
-void PlayerObject::addCredits(int value)
-{
-	credits = credits + value;
-}
-
-void PlayerObject::decrementCredits(int value)
-{
-	credits = credits - value;
+	return;
 }
 
 gef::Mesh* PlayerObject::getMeshFromSceneAssets(gef::Scene* scene)
@@ -88,46 +66,43 @@ gef::Mesh* PlayerObject::getMeshFromSceneAssets(gef::Scene* scene)
 void PlayerObject::updateScale(gef::Vector4 scaleVector)
 {
 	scaleMatrix.Scale(scaleVector);
+	return;
 }
 
 void PlayerObject::updateRotationX(float degrees)
 {
 	rotationMatrix.RotationX(gef::DegToRad(degrees));
+	return;
 }
 
 void PlayerObject::updateRotationY(float degrees)
 {
 	rotationMatrix.RotationY(gef::DegToRad(degrees));
+	return;
 }
 
 void PlayerObject::updateRotationZ(float degrees)
 {
 	rotationMatrix.RotationZ(gef::DegToRad(degrees));
+	return;
 }
 
 void PlayerObject::translate(gef::Vector4 translationVector)
 {
 	translationMatrix.SetTranslation(translationVector);
+	return;
 }
 
 void PlayerObject::update()
 {
 	objectTranslation = gef::Vector4(body->GetPosition().x, body->GetPosition().y, 0);
 	translationMatrix.SetTranslation(objectTranslation);
+	return;
 }
 
 void PlayerObject::render(gef::Renderer3D* renderer_3d_)
 {
 	this->set_transform((scaleMatrix * rotationMatrix) * translationMatrix);
 	renderer_3d_->DrawMesh(*this);
-}
-
-Weapon PlayerObject::getActiveWeapon()
-{
-	return *activeWeapon;
-}
-
-void PlayerObject::addWeapon(Weapon newWeapon)
-{
-	weapons.push_back(&newWeapon);
+	return;
 }

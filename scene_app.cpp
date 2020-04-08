@@ -216,7 +216,6 @@ void SceneApp::UpdateSimulation(float frame_time)
 			// DO COLLISION RESPONSE HERE
 			PlayerObject* player = NULL;
 			Enemy* enemy = NULL;
-			hitDetectionObject* hitDectection = NULL;
 			GameObject* gameObjectA = NULL;
 			GameObject* gameObjectB = NULL;
 
@@ -250,7 +249,9 @@ void SceneApp::UpdateSimulation(float frame_time)
 			if (player && enemy)
 			{
 				gef::DebugOut("Player and enemy collision!\n");
-				player->decrementHealth(gameTime);
+
+				playerData.decrementHealth(gameTime,1);
+
 				if (gameObjectA->type() == ENEMY)
 				{
 					bodyA->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
@@ -260,13 +261,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 					bodyB->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 				}
 			}
-
-			if (enemy && hitDectection)
-			{
-				enemy->DecrementHealth();
-			}
 		}
-
 		// Get next contact point
 		contact = contact->GetNext();
 	}
@@ -332,6 +327,11 @@ void SceneApp::FrontendRender()
 
 void SceneApp::GameInit()
 {
+	const char* sceneAssetFilename;
+	// initialise the physics world
+	b2Vec2 gravity(0.0f,0.0f);
+	world_ = new b2World(gravity);
+
 	//Initalize our time variable
 	gameTime = 0;
 	//Define how many enemies to make, if it is < 0 program will not respond
@@ -345,20 +345,25 @@ void SceneApp::GameInit()
 	//Create the first weapons if it's not been made yet.
 	if (firstRun == true)
 	{
-		handgun = new Weapon("playstation-triangle-dark-icon.png", &platform_, 100, 10, 10, 2.5f, "Handgun");
+		handgun = new Weapon();
+		handgun->create("handgun.png", &platform_, 100, 10, 10, 2.5f, "Handgun");
+		//playerData.addWeapon(*handgun);
+		firstRun = false;
 	}
-	//Load our enemy asset
-	const char* sceneAssetFilename = "stickman.scn";
-	enemySceneAsset = LoadSceneAssets(platform_, sceneAssetFilename);
-	if (!enemySceneAsset)
-	{
-		gef::DebugOut("Failed to load enemy scene file. %s", sceneAssetFilename);
-	}
+
 	sceneAssetFilename = "NewHouse.scn";
 	playerSceneAsset = LoadSceneAssets(platform_, sceneAssetFilename);
 	if (!playerSceneAsset)
 	{
 		gef::DebugOut("Failed to load player scene file. %s", sceneAssetFilename);
+	}
+
+	//Load our enemy asset
+	sceneAssetFilename = "stickman.scn";
+	enemySceneAsset = LoadSceneAssets(platform_, sceneAssetFilename);
+	if (!enemySceneAsset)
+	{
+		gef::DebugOut("Failed to load enemy scene file. %s", sceneAssetFilename);
 	}
 
 	// create the renderer for draw 3D geometry
@@ -367,22 +372,13 @@ void SceneApp::GameInit()
 	// initialise primitive builder to make create some 3D geometry easier
 	primitive_builder_ = new PrimitiveBuilder(platform_);
 
-	//Create our touch sprite
-	touchSprite.set_position(platform_.width() * 0.5f, platform_.height() * 0.5f, 0.0f);
-	touchSprite.set_width(64.0f);
-	touchSprite.set_height(64.0f);
-
 	//Load our audio samples
 	gunShotSampleID = audioManager->LoadSample("gunShot.wav", platform_);
 
 	SetupLights();
 
-	// initialise the physics world
-	b2Vec2 gravity(0.0f,0.0f);
-	world_ = new b2World(gravity);
-
 	//Setup player
-	Player = new PlayerObject(playerSceneAsset, world_, handgun);
+	Player = new PlayerObject(playerSceneAsset, world_);
 	Player->updateScale(gef::Vector4(0.1f, 0.2f, 0.1f));
 	Player->updateRotationY(90);
 
@@ -395,6 +391,15 @@ void SceneApp::GameInit()
 	for (int i = 0; i < enemies.size(); i++)
 	{
 		enemies[i]->getBody()->ApplyForceToCenter(b2Vec2(3, 0), true);
+	}
+
+	playerData.addWeapon(*handgun);
+	playerData.setActiveWeapon(0);
+	activeWeapon = playerData.getActiveWeapon();
+
+	if (playerData.getActiveWeapon().getName() == "")
+	{
+		gef::DebugOut("ERROR: Unable to read weapon name!");
 	}
 }
 
@@ -415,6 +420,9 @@ void SceneApp::GameRelease()
 
 	delete playerSceneAsset;
 	playerSceneAsset = NULL;
+
+	delete Player;
+	Player = NULL;
 
 	enemies.clear();
 
@@ -437,9 +445,8 @@ void SceneApp::GameUpdate(float frame_time)
 		if (enemies[i]->getHealth() <= 0)
 		{
 			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
-			Player->addCredits(10);
+			playerData.addCredits(10);
 		}
-
 	}
 
 	ProcessTouchInput();
@@ -449,11 +456,13 @@ void SceneApp::GameUpdate(float frame_time)
 	if (enemies.size() == 0)
 	{
 		updateStateMachine(2,1);
+		return;
 	}
 
-	if (Player->getHealth() <= 0)
+	if (playerData.getHealth() <= 0)
 	{
 		updateStateMachine(3, 1);
+		return;
 	}
 }
 
@@ -502,7 +511,7 @@ void SceneApp::GameRender()
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
-		"Health %i", Player->getHealth());
+		"Health %i", playerData.getHealth());
 
 	font_->RenderText(
 		sprite_renderer_,
@@ -510,27 +519,20 @@ void SceneApp::GameRender()
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
-		"Credits: %i", Player->getCredits());
+		"Credits: %i", playerData.getCredits());
+
+	//gef::DebugOut("Current weapons is : %s", activeWeapon.getName());
 
 	font_->RenderText(
 		sprite_renderer_,
-		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 270.0f, 0.0f),
+		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 220.0f, 0.0f),
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
-		"Current weapon: %s", Player->getActiveWeapon().getName());
+		"Ammo count: %i", activeWeapon.getAmmo());
 
-	font_->RenderText(
-		sprite_renderer_,
-		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 250.0f, 0.0f),
-		1.0f,
-		0xffffffff,
-		gef::TJ_CENTRE,
-		"Ammo count: %i", Player->getActiveWeapon().getAmmo());
-
-	Player->getActiveWeapon().set_position(gef::Vector4(platform_.width() * 0.25f, platform_.height() * 0.5f, 0));
-	handgun->set_position(gef::Vector4(platform_.width() * 0.25f, platform_.height() * 0.5f, 0));
-	sprite_renderer_->DrawSprite(Player->getActiveWeapon());
+	activeWeapon.set_position(gef::Vector4(platform_.width() * 0.5f + 400.f, platform_.height() * 0.5f - 200.0f, 0));
+	sprite_renderer_->DrawSprite(activeWeapon);
 
 	sprite_renderer_->End();
 }
@@ -557,6 +559,7 @@ void SceneApp::StoreRelease()
 		delete storeItem[i];
 	}
 
+	storeItem.clear();
 	audioManager->StopMusic();
 	audioManager->UnloadMusic();
 }
@@ -708,9 +711,6 @@ void SceneApp::ProcessTouchInput()
 					activeTouchID = touch->id;
 
 					//Do any processing for a new touch here
-
-					//move touch sprite
-					touchSprite.set_position(touch->position.x, touch->position.y, 0);
 
 					// convert the touch position to a ray that starts on the camera near plane
 					// and shoots into the camera view frustum

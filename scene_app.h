@@ -14,11 +14,11 @@
 #include <vector>
 #include <EnemyObject.h>
 #include <math.h>
-#include <hitDetectionObject.h>
 #include <PlayerObject.h>
 #include <StoreItem.h>
 #include <Weapon.h>
 #include <string>
+#include <PlayerData.h>
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
 {
@@ -106,15 +106,16 @@ private:
 	bool firstRun = true;
 	gef::Vector2 touchPosition;
 	Int32 activeTouchID;
-	gef::Sprite touchSprite;
 	int gunShotSampleID;
 	std::vector <EnemyObject*> enemies;
 	PlayerObject* Player;
 	gef::Scene* enemySceneAsset;
 	gef::Scene* playerSceneAsset;
 	Weapon* handgun;
+	Weapon activeWeapon;
 	bool testRender;
 	float gameTime;
+	PlayerData playerData;
 	//Used for 2D -> 3D projection
 	float ndc_z_min_;
 	//Game functions

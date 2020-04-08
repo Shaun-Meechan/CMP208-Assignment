@@ -1,20 +1,12 @@
 #include "Weapon.h"
 
-Weapon::Weapon(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newAmmo, float newReloadTime, string newName)
+Weapon::Weapon()
 {
-	icon = CreateTextureFromPNG(pngFileName, *platform);
-
-	cost = newCost;
-	damage = newDamage;
-	ammo = newAmmo;
-	reloadTime = newReloadTime;
-	name = newName;
-
-	this->set_height(64.0f);
-	this->set_width(64.0f);
-
-	this->set_texture(icon);
-
+	cost = 0;
+	damage = 0;
+	ammo = 0;
+	reloadTime = 0.0f;
+	name = "";
 }
 
 gef::Texture* Weapon::getIcon()
@@ -45,4 +37,22 @@ float Weapon::getReload()
 string Weapon::getName()
 {
 	return name;
+}
+
+void Weapon::create(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newAmmo, float newReloadTime, string newName)
+{
+	name.clear();
+
+	icon = CreateTextureFromPNG(pngFileName, *platform);
+
+	cost = newCost;
+	damage = newDamage;
+	ammo = newAmmo;
+	reloadTime = newReloadTime;
+	name = newName;
+
+	this->set_height(64.0f);
+	this->set_width(64.0f);
+
+	this->set_texture(icon);
 }
