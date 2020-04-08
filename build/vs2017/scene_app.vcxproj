@@ -227,6 +227,7 @@
     <ClCompile Include="hitDetectionObject.cpp" />
     <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="StoreItem.cpp" />
+    <ClCompile Include="Weapon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\game_object.h" />
@@ -237,6 +238,7 @@
     <ClInclude Include="hitDetectionObject.h" />
     <ClInclude Include="PlayerObject.h" />
     <ClInclude Include="StoreItem.h" />
+    <ClInclude Include="Weapon.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

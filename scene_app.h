@@ -17,7 +17,8 @@
 #include <hitDetectionObject.h>
 #include <PlayerObject.h>
 #include <StoreItem.h>
-
+#include <Weapon.h>
+#include <string>
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
 {
@@ -28,6 +29,8 @@ namespace gef
 	class Renderer3D;
 	class AudioManager;
 }
+
+using std::string;
 
 class SceneApp : public gef::Application
 {
@@ -62,7 +65,7 @@ private:
 	PrimitiveBuilder* primitive_builder_;
 
 	//Game State declarations
-	enum GAMESTATE{INIT, Level1, Store};
+	enum GAMESTATE{INIT, Level1, Store, Fail, Win};
 	GAMESTATE gameState = INIT;
 	// create the physics world
 	b2World* world_;
@@ -88,16 +91,28 @@ private:
 	void StoreUpdate(float frame_time);
 	void StoreRender();
 
+	void FailInit();
+	void FailRelease();
+	void FailUpdate(float frame_time);
+	void FailRender();
+
+	void WinInit();
+	void WinRelease();
+	void WinUpdate(float frame_time);
+	void WinRender();
+
 
 	//Game Variables
+	bool firstRun = true;
 	gef::Vector2 touchPosition;
 	Int32 activeTouchID;
 	gef::Sprite touchSprite;
 	int gunShotSampleID;
 	std::vector <EnemyObject*> enemies;
-	PlayerObject Player;
+	PlayerObject* Player;
 	gef::Scene* enemySceneAsset;
 	gef::Scene* playerSceneAsset;
+	Weapon* handgun;
 	bool testRender;
 	float gameTime;
 	//Used for 2D -> 3D projection

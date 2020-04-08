@@ -6,6 +6,7 @@
 #include <maths/vector4.h>
 #include <maths/math_utils.h>
 #include <graphics/renderer_3d.h>
+#include <Weapon.h>
 
 namespace gef
 {
@@ -15,7 +16,7 @@ namespace gef
 class PlayerObject: public GameObject
 {
 public:
-	void init(gef::Scene* sceneFile, b2World* world);
+	PlayerObject(gef::Scene* sceneFile, b2World* world, Weapon* weapon);
 	b2Body* getBody();
 	int getHealth();
 	void decrementHealth(float time);
@@ -30,6 +31,9 @@ public:
 	void translate(gef::Vector4 translationVector);
 	void update();
 	void render(gef::Renderer3D* renderer_3d_);
+	//Weapons functions
+	Weapon getActiveWeapon();
+	void addWeapon(Weapon newWeapon);
 private:
 	gef::Mesh* getMeshFromSceneAssets(gef::Scene* scene);
 	b2Body* body;
@@ -43,5 +47,7 @@ private:
 	gef::Matrix44 rotationMatrix;
 	gef::Matrix44 translationMatrix;
 	unsigned int credits;
+	std::vector<Weapon*> weapons;
+	Weapon* activeWeapon;
 };
 

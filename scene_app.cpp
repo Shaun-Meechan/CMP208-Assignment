@@ -81,11 +81,15 @@ bool SceneApp::Update(float frame_time)
 			case SceneApp::INIT:
 				updateStateMachine(1,0);
 				break;
-			case SceneApp::Level1:
-				updateStateMachine(0,1);
-				break;
 			case SceneApp::Store:
 				updateStateMachine(1,2);
+				break;
+			case SceneApp::Fail:
+				updateStateMachine(1, 3);
+				break;
+			case SceneApp::Win:
+				updateStateMachine(0, 4);
+				break;
 			default:
 				break;
 			}
@@ -102,6 +106,12 @@ bool SceneApp::Update(float frame_time)
 		break;
 	case SceneApp::Store:
 		StoreUpdate(frame_time);
+		break;
+	case SceneApp::Fail:
+		FailUpdate(frame_time);
+		break;
+	case SceneApp::Win:
+		WinUpdate(frame_time);
 		break;
 	default:
 		break;
@@ -122,6 +132,12 @@ void SceneApp::Render()
 		break;
 	case SceneApp::Store:
 		StoreRender();
+		break;
+	case SceneApp::Fail:
+		FailRender();
+		break;
+	case SceneApp::Win:
+		WinRender();
 		break;
 	default:
 		break;
@@ -176,7 +192,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 	world_->Step(timeStep, velocityIterations, positionIterations);
 
 	// update object visuals from simulation data
-	Player.UpdateFromSimulation(Player.getBody());
+	Player->UpdateFromSimulation(Player->getBody());
 
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -235,6 +251,14 @@ void SceneApp::UpdateSimulation(float frame_time)
 			{
 				gef::DebugOut("Player and enemy collision!\n");
 				player->decrementHealth(gameTime);
+				if (gameObjectA->type() == ENEMY)
+				{
+					bodyA->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+				}
+				else if (gameObjectB->type() == ENEMY)
+				{
+					bodyB->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+				}
 			}
 
 			if (enemy && hitDectection)
@@ -318,6 +342,11 @@ void SceneApp::GameInit()
 		input_manager_->touch_manager()->EnablePanel(0);
 	}
 
+	//Create the first weapons if it's not been made yet.
+	if (firstRun == true)
+	{
+		handgun = new Weapon("playstation-triangle-dark-icon.png", &platform_, 100, 10, 10, 2.5f, "Handgun");
+	}
 	//Load our enemy asset
 	const char* sceneAssetFilename = "stickman.scn";
 	enemySceneAsset = LoadSceneAssets(platform_, sceneAssetFilename);
@@ -353,9 +382,9 @@ void SceneApp::GameInit()
 	world_ = new b2World(gravity);
 
 	//Setup player
-	Player.init(playerSceneAsset, world_);
-	Player.updateScale(gef::Vector4(0.1f, 0.2f, 0.1f));
-	Player.updateRotationY(90);
+	Player = new PlayerObject(playerSceneAsset, world_, handgun);
+	Player->updateScale(gef::Vector4(0.1f, 0.2f, 0.1f));
+	Player->updateRotationY(90);
 
 	for (unsigned int i = 0; i < enemiesToMake; i++)
 	{
@@ -399,7 +428,7 @@ void SceneApp::GameUpdate(float frame_time)
 	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
 
 	gameTime = gameTime + frame_time;
-	Player.update();
+	Player->update();
 
 	//check all the alive enemies to see if they need to be killed
 	for (int i = 0; i < enemies.size(); i++)
@@ -408,7 +437,7 @@ void SceneApp::GameUpdate(float frame_time)
 		if (enemies[i]->getHealth() <= 0)
 		{
 			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
-			Player.addCredits(10);
+			Player->addCredits(10);
 		}
 
 	}
@@ -420,6 +449,11 @@ void SceneApp::GameUpdate(float frame_time)
 	if (enemies.size() == 0)
 	{
 		updateStateMachine(2,1);
+	}
+
+	if (Player->getHealth() <= 0)
+	{
+		updateStateMachine(3, 1);
 	}
 }
 
@@ -446,7 +480,7 @@ void SceneApp::GameRender()
 	renderer_3d_->Begin();
 
 	// draw player
-	Player.render(renderer_3d_);	
+	Player->render(renderer_3d_);	
 
 	//Draw enemy
 	for (int i = 0; i < enemies.size(); i++)
@@ -458,7 +492,7 @@ void SceneApp::GameRender()
 
 	// start drawing sprites, but don't clear the frame buffer
 	sprite_renderer_->Begin(false);
-	//sprite_renderer_->DrawSprite(touchSprite);
+
 	DrawHUD();
 
 	// Render Title Text
@@ -468,7 +502,7 @@ void SceneApp::GameRender()
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
-		"Health %i", Player.getHealth());
+		"Health %i", Player->getHealth());
 
 	font_->RenderText(
 		sprite_renderer_,
@@ -476,7 +510,27 @@ void SceneApp::GameRender()
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
-		"Credits: %i", Player.getCredits());
+		"Credits: %i", Player->getCredits());
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 270.0f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Current weapon: %s", Player->getActiveWeapon().getName());
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 250.0f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Ammo count: %i", Player->getActiveWeapon().getAmmo());
+
+	Player->getActiveWeapon().set_position(gef::Vector4(platform_.width() * 0.25f, platform_.height() * 0.5f, 0));
+	handgun->set_position(gef::Vector4(platform_.width() * 0.25f, platform_.height() * 0.5f, 0));
+	sprite_renderer_->DrawSprite(Player->getActiveWeapon());
 
 	sprite_renderer_->End();
 }
@@ -494,7 +548,6 @@ void SceneApp::StoreInit()
 
 	storeItem.push_back(new StoreItem("playstation-triangle-dark-icon.png", &platform_,2100));
 	storeItem[2]->set_position(gef::Vector4(platform_.width() * 0.75f, platform_.height() * 0.5f, 0));
-
 }
 
 void SceneApp::StoreRelease()
@@ -529,6 +582,62 @@ void SceneApp::StoreRender()
 			"%i", storeItem[i]->getCost());
 
 	}
+
+	sprite_renderer_->End();
+}
+
+void SceneApp::FailInit()
+{
+}
+
+void SceneApp::FailRelease()
+{
+}
+
+void SceneApp::FailUpdate(float frame_time)
+{
+}
+
+void SceneApp::FailRender()
+{
+	sprite_renderer_->Begin();
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"You have been defeated, your house is yours no longer.");
+
+	sprite_renderer_->End();
+}
+
+void SceneApp::WinInit()
+{
+}
+
+void SceneApp::WinRelease()
+{
+}
+
+void SceneApp::WinUpdate(float frame_time)
+{
+}
+
+void SceneApp::WinRender()
+{
+	sprite_renderer_->Begin();
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Victory! Your house is now safe.");
+
+	sprite_renderer_->End();
 }
 
 //New ID represent where we want to go. Old represent where we came from.
@@ -537,7 +646,7 @@ void SceneApp::updateStateMachine(int newID, int oldID)
 	switch (newID)
 	{
 	case 0://Front end
-		GameRelease();
+		WinRelease();
 		FrontendInit();
 		gameState = INIT;
 		break;
@@ -546,9 +655,13 @@ void SceneApp::updateStateMachine(int newID, int oldID)
 		{
 			FrontendRelease();
 		}
-		else
+		if (oldID == 2)
 		{
 			StoreRelease();
+		}
+		if (oldID == 3)
+		{
+			FailRelease();
 		}
 		GameInit();
 		gameState = Level1;
@@ -557,6 +670,17 @@ void SceneApp::updateStateMachine(int newID, int oldID)
 		GameRelease();
 		StoreInit();
 		gameState = Store;
+		break;
+	case 3://Fail
+		GameRelease();
+		FailInit();
+		gameState = Fail;
+		break;
+	case 4://Win
+		GameRelease();
+		WinInit();
+		gameState = Win;
+		break;
 	default:
 		break;
 	}

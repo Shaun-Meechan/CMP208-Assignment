@@ -1,6 +1,6 @@
 #include "PlayerObject.h"
 
-void PlayerObject::init(gef::Scene* sceneFile, b2World* world)
+PlayerObject::PlayerObject(gef::Scene* sceneFile, b2World* world, Weapon* weapon)
 {
 	credits = 0;
 	health = 100;
@@ -8,7 +8,7 @@ void PlayerObject::init(gef::Scene* sceneFile, b2World* world)
 	this->set_mesh(getMeshFromSceneAssets(sceneFile));
 	// create a physics body for the enemy
 	bodyDef.type = b2_staticBody;
- 
+
 	bodyDef.position.Set(9.2f, -1.5f); //Use this to move the player
 
 	body = world->CreateBody(&bodyDef);
@@ -34,6 +34,8 @@ void PlayerObject::init(gef::Scene* sceneFile, b2World* world)
 	scaleMatrix.SetIdentity();
 	rotationMatrix.SetIdentity();
 	translationMatrix.SetIdentity();
+
+	activeWeapon = weapon;
 }
 
 b2Body* PlayerObject::getBody()
@@ -50,7 +52,7 @@ void PlayerObject::decrementHealth(float time)
 {
 	if (lastDamageTime + 1 <= time)
 	{
-		//We last took damge 5 seconds ago, take damage again.
+		//We last took damge 1 second ago, take damage again.
 		health--;
 		lastDamageTime = time;
 	}
@@ -118,4 +120,14 @@ void PlayerObject::render(gef::Renderer3D* renderer_3d_)
 {
 	this->set_transform((scaleMatrix * rotationMatrix) * translationMatrix);
 	renderer_3d_->DrawMesh(*this);
+}
+
+Weapon PlayerObject::getActiveWeapon()
+{
+	return *activeWeapon;
+}
+
+void PlayerObject::addWeapon(Weapon newWeapon)
+{
+	weapons.push_back(&newWeapon);
 }
