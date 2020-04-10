@@ -12,10 +12,11 @@ public:
 	Weapon getActiveWeapon();
 	void addWeapon(Weapon newWeapon);
 	void setActiveWeapon(int ID);
+	void removeMostRecentWeapon();
 private:
 	unsigned int credits = 0;
 	std::vector<Weapon*> weapons;
-	Weapon* activeWeapon;
+	Weapon activeWeapon;
 	int health = 100;
 	float lastDamageTime;
 };

@@ -34,7 +34,7 @@ void PlayerData::decrementHealth(float time, int value)
 
 Weapon PlayerData::getActiveWeapon()
 {
-	return *activeWeapon;
+	return activeWeapon;
 }
 
 void PlayerData::addWeapon(Weapon newWeapon)
@@ -83,7 +83,12 @@ void PlayerData::setActiveWeapon(int ID)
 	}
 	else
 	{
-		activeWeapon = weapons[ID];
+		activeWeapon = *weapons[ID];
 		return;
 	}
+}
+
+void PlayerData::removeMostRecentWeapon()
+{
+	weapons.erase(weapons.end()-1);
 }

@@ -199,6 +199,8 @@ void SceneApp::UpdateSimulation(float frame_time)
 		enemies[i]->UpdateFromSimulation(enemies[i]->getBody());
 	}
 
+	wallObject->UpdateFromSimulation(wallObject->getBody());
+
 	// collision detection
 	// get the head of the contact list
 	b2Contact* contact = world_->GetContactList();
@@ -300,8 +302,8 @@ void SceneApp::FrontendRender()
 	gef::Sprite background;
 	background.set_texture(backgroundSprite);
 	background.set_position(gef::Vector4(platform_.width() - 480.f, platform_.height() - 273.f, 0.f));
-	background.set_height(544.f);
-	background.set_width(960.f);
+	background.set_height(platform_.height());
+	background.set_width(platform_.width());
 	sprite_renderer_->DrawSprite(background);
 
 	// Render Title Text
@@ -347,7 +349,8 @@ void SceneApp::GameInit()
 	{
 		handgun = new Weapon();
 		handgun->create("handgun.png", &platform_, 100, 10, 10, 2.5f, "Handgun");
-		//playerData.addWeapon(*handgun);
+		playerData.addWeapon(*handgun);
+		playerData.setActiveWeapon(0);
 		firstRun = false;
 	}
 
@@ -366,6 +369,13 @@ void SceneApp::GameInit()
 		gef::DebugOut("Failed to load enemy scene file. %s", sceneAssetFilename);
 	}
 
+	sceneAssetFilename = "wall.scn";
+	wallSceneAsset = LoadSceneAssets(platform_, sceneAssetFilename);
+	if (!wallSceneAsset)
+	{
+		gef::DebugOut("ERROR: Failed to load wall scene file, %s", sceneAssetFilename);
+	}
+
 	// create the renderer for draw 3D geometry
 	renderer_3d_ = gef::Renderer3D::Create(platform_);
 
@@ -380,7 +390,12 @@ void SceneApp::GameInit()
 	//Setup player
 	Player = new PlayerObject(playerSceneAsset, world_);
 	Player->updateScale(gef::Vector4(0.1f, 0.2f, 0.1f));
-	Player->updateRotationY(90);
+	Player->updateRotationY(80);
+
+	//Setup wall
+	wallObject = new WallObject(wallSceneAsset, world_);
+	wallObject->updateScale(gef::Vector4(0.55f, 0.1f, 0.1f));
+	wallObject->updateRotationZ(90);
 
 	for (unsigned int i = 0; i < enemiesToMake; i++)
 	{
@@ -393,14 +408,14 @@ void SceneApp::GameInit()
 		enemies[i]->getBody()->ApplyForceToCenter(b2Vec2(3, 0), true);
 	}
 
-	playerData.addWeapon(*handgun);
-	playerData.setActiveWeapon(0);
 	activeWeapon = playerData.getActiveWeapon();
 
 	if (playerData.getActiveWeapon().getName() == "")
 	{
 		gef::DebugOut("ERROR: Unable to read weapon name!");
 	}
+
+	gameBackgroundSprite = CreateTextureFromPNG("groundSprite.png", platform_);
 }
 
 void SceneApp::GameRelease()
@@ -421,8 +436,14 @@ void SceneApp::GameRelease()
 	delete playerSceneAsset;
 	playerSceneAsset = NULL;
 
+	delete wallSceneAsset;
+	wallSceneAsset = NULL;
+
 	delete Player;
 	Player = NULL;
+
+	delete wallObject;
+	wallObject = NULL;
 
 	enemies.clear();
 
@@ -437,6 +458,7 @@ void SceneApp::GameUpdate(float frame_time)
 
 	gameTime = gameTime + frame_time;
 	Player->update();
+	wallObject->update();
 
 	//check all the alive enemies to see if they need to be killed
 	for (int i = 0; i < enemies.size(); i++)
@@ -497,6 +519,8 @@ void SceneApp::GameRender()
 		enemies[i]->render(renderer_3d_);
 	}
 
+	wallObject->render(renderer_3d_);
+
 	renderer_3d_->End();
 
 	// start drawing sprites, but don't clear the frame buffer
@@ -521,8 +545,6 @@ void SceneApp::GameRender()
 		gef::TJ_CENTRE,
 		"Credits: %i", playerData.getCredits());
 
-	//gef::DebugOut("Current weapons is : %s", activeWeapon.getName());
-
 	font_->RenderText(
 		sprite_renderer_,
 		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 220.0f, 0.0f),
@@ -533,6 +555,13 @@ void SceneApp::GameRender()
 
 	activeWeapon.set_position(gef::Vector4(platform_.width() * 0.5f + 400.f, platform_.height() * 0.5f - 200.0f, 0));
 	sprite_renderer_->DrawSprite(activeWeapon);
+
+	gef::Sprite background;
+	background.set_texture(gameBackgroundSprite);
+	background.set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f, 1.0f));
+	background.set_height(platform_.height());
+	background.set_width(platform_.width());
+	sprite_renderer_->DrawSprite(background);
 
 	sprite_renderer_->End();
 }

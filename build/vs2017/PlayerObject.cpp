@@ -7,7 +7,7 @@ PlayerObject::PlayerObject(gef::Scene* sceneFile, b2World* world)
 	// create a physics body for the enemy
 	bodyDef.type = b2_staticBody;
 
-	bodyDef.position.Set(9.2f, -1.5f); //Use this to move the player
+	bodyDef.position.Set(9.5f, -1.5f); //Use this to move the player
 
 	body = world->CreateBody(&bodyDef);
 

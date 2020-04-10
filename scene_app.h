@@ -19,6 +19,7 @@
 #include <Weapon.h>
 #include <string>
 #include <PlayerData.h>
+#include "WallObject.h"
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
 {
@@ -103,14 +104,17 @@ private:
 
 
 	//Game Variables
+	gef::Texture* gameBackgroundSprite;
 	bool firstRun = true;
 	gef::Vector2 touchPosition;
 	Int32 activeTouchID;
 	int gunShotSampleID;
 	std::vector <EnemyObject*> enemies;
 	PlayerObject* Player;
+	WallObject* wallObject;
 	gef::Scene* enemySceneAsset;
 	gef::Scene* playerSceneAsset;
+	gef::Scene* wallSceneAsset;
 	Weapon* handgun;
 	Weapon activeWeapon;
 	bool testRender;
