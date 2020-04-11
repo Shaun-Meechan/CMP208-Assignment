@@ -108,9 +108,9 @@ private:
 	gef::Texture* gameBackgroundSprite;
 	bool firstRun = true;
 	gef::Vector2 touchPosition;
-	Int32 activeTouchID;
-	int gunShotSampleID;
-	int backgroundSFXID;
+	Int32 activeTouchID = 0;
+	int gunShotSampleID = 0;
+	int backgroundSFXID = 0;
 	std::vector <EnemyObject*> enemies;
 	PlayerObject* Player;
 	WallObject* wallObject;
@@ -133,7 +133,8 @@ private:
 
 	//Store Variables
 	std::vector<StoreItem*> storeItem;
-	int purchaseSfx;
+	int purchaseSfx = 0;
+	int purchasefailSFX = 0;
 	bool testState = false;
 	// Global Functions
 	void updateStateMachine(int newID, int oldID);

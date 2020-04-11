@@ -26,12 +26,14 @@ public:
 	//Do something
 	PlayerData run(PlayerData playerData);
 	b2Body* getBody();
+	bool didPurchaseSucced();
 private:
 	gef::Texture* icon;
-	unsigned int cost;
+	int cost;
 	itemType type;
 	b2Body* body;
 	b2BodyDef bodyDef;
 	bool canPlayerAfford(PlayerData* playerData);
+	bool purchaseSuccessful;
 };
 

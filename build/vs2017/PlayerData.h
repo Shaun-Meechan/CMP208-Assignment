@@ -17,7 +17,7 @@ public:
 	void addRiflemen(int value);
 	int getRiflemen();
 private:
-	unsigned int credits = 0;
+	int credits = 0;
 	std::vector<Weapon*> weapons;
 	Weapon activeWeapon;
 	int health = 100;

@@ -60,6 +60,8 @@ PlayerData StoreItem::run(PlayerData playerData)
 		if (canPlayerAfford(&playerData) == true)
 		{
 			playerData.addHealth(10);
+			purchaseSuccessful = true;
+			playerData.decrementCredits(cost);
 		}
 		else
 		{
@@ -70,6 +72,8 @@ PlayerData StoreItem::run(PlayerData playerData)
 		if (canPlayerAfford(&playerData) == true)
 		{
 			playerData.addRiflemen(1);
+			purchaseSuccessful = true;
+			playerData.decrementCredits(cost);
 		}
 		else
 		{
@@ -92,9 +96,25 @@ b2Body* StoreItem::getBody()
 	return body;
 }
 
+//Check to see if the purchase was successful.
+bool StoreItem::didPurchaseSucced()
+{
+	if (purchaseSuccessful == true)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+	//Reset the value of purchase successful.
+	purchaseSuccessful = false;
+}
+
 bool StoreItem::canPlayerAfford(PlayerData* playerData)
 {
-	if (playerData->getCredits() - cost < 0)
+	if ((playerData->getCredits() - cost) < 0)
 	{
 		return false;
 	}

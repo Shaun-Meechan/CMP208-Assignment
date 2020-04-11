@@ -336,8 +336,11 @@ void SceneApp::GameInit()
 
 	//Initalize our time variable
 	gameTime = 0;
+
+	//Reset our rifleman attack time
+	lastRfilemenAttackTime = 0;
 	//Define how many enemies to make, if it is < 0 program will not respond
-	unsigned int enemiesToMake = 1;
+	unsigned int enemiesToMake = 8;
 	// Make sure there is a panel to detect touch, activate if it exists
 	if (input_manager_ && input_manager_->touch_manager() && (input_manager_->touch_manager()->max_num_panels() > 0))
 	{
@@ -473,17 +476,6 @@ void SceneApp::GameUpdate(float frame_time)
 	Player->update();
 	wallObject->update();
 
-	//Use any riflemen the player has
-	if (lastRfilemenAttackTime + 5 <= gameTime)
-	{
-		for (int i = 0; i < playerData.getRiflemen(); i++)
-		{
-			enemies[i]->decrementHealth(5);
-			audioManager->PlaySample(gunShotSampleID);
-		}
-		lastRfilemenAttackTime = gameTime;
-	}
-
 	//check all the alive enemies to see if they need to be killed
 	for (int i = 0; i < enemies.size(); i++)
 	{
@@ -493,6 +485,20 @@ void SceneApp::GameUpdate(float frame_time)
 			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
 			playerData.addCredits(10);
 		}
+	}
+
+	//Use any riflemen the player has
+	if (lastRfilemenAttackTime + 2 <= gameTime)
+	{
+		for (int i = 0; i < playerData.getRiflemen(); i++)
+		{
+			if (i < enemies.size())
+			{
+				enemies[i]->decrementHealth(5);
+				audioManager->PlaySample(gunShotSampleID);
+			}
+		}
+		lastRfilemenAttackTime = gameTime;
 	}
 
 	ProcessTouchInput();
@@ -598,6 +604,7 @@ void SceneApp::StoreInit()
 	renderer_3d_ = gef::Renderer3D::Create(platform_);
 
 	purchaseSfx = audioManager->LoadSample("purchasemade.wav", platform_);
+	purchasefailSFX = audioManager->LoadSample("purchasefail.wav", platform_);
 
 	audioManager->LoadMusic("StoreMusic.wav", platform_);
 	audioManager->PlayMusic();
@@ -621,6 +628,7 @@ void SceneApp::StoreRelease()
 	storeItem.clear();
 	audioManager->StopMusic();
 	audioManager->StopPlayingSampleVoice(purchaseSfx);
+	audioManager->StopPlayingSampleVoice(purchasefailSFX);
 	audioManager->UnloadMusic();
 	audioManager->UnloadAllSamples();
 	purchaseSfx = NULL;
@@ -672,6 +680,14 @@ void SceneApp::StoreRender()
 			"%i", storeItem[i]->getCost());
 
 	}
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width()* 0.9f, platform_.height() * 0.1f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Credits: %i", playerData.getCredits());
 
 	sprite_renderer_->End();
 }
@@ -843,7 +859,14 @@ void SceneApp::ProcessTouchInput()
 								{
 									//Player touched an enemy do something
 									playerData = storeItem[i]->run(playerData); //Lower this by the damage of the current weapon
-									audioManager->PlaySample(purchaseSfx,false);
+									if (storeItem[i]->didPurchaseSucced() == true)
+									{
+										audioManager->PlaySample(purchaseSfx,false);
+									}
+									else
+									{
+										audioManager->PlaySample(purchasefailSFX, false);
+									}
 								}
 							}
 						}
