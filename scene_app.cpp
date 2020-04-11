@@ -337,7 +337,7 @@ void SceneApp::GameInit()
 	//Initalize our time variable
 	gameTime = 0;
 	//Define how many enemies to make, if it is < 0 program will not respond
-	unsigned int enemiesToMake = 8;
+	unsigned int enemiesToMake = 1;
 	// Make sure there is a panel to detect touch, activate if it exists
 	if (input_manager_ && input_manager_->touch_manager() && (input_manager_->touch_manager()->max_num_panels() > 0))
 	{
@@ -384,6 +384,10 @@ void SceneApp::GameInit()
 
 	//Load our audio samples
 	gunShotSampleID = audioManager->LoadSample("gunShot.wav", platform_);
+	backgroundSFXID = audioManager->LoadSample("gamebackgroundsfx.wav", platform_);
+
+	//start our background sfx
+	audioManager->PlaySample(backgroundSFXID, true);
 
 	SetupLights();
 
@@ -449,7 +453,16 @@ void SceneApp::GameRelease()
 
 	gameTime = 0;
 
-	audioManager->UnloadSample(gunShotSampleID);
+	delete gameBackgroundSprite;
+	gameBackgroundSprite = NULL;
+
+	//Audio unload
+	audioManager->StopMusic();
+	audioManager->StopPlayingSampleVoice(gunShotSampleID);
+	audioManager->StopPlayingSampleVoice(backgroundSFXID);
+	audioManager->UnloadAllSamples();
+	gunShotSampleID = NULL;
+	backgroundSFXID = NULL;
 }
 
 void SceneApp::GameUpdate(float frame_time)
@@ -459,6 +472,17 @@ void SceneApp::GameUpdate(float frame_time)
 	gameTime = gameTime + frame_time;
 	Player->update();
 	wallObject->update();
+
+	//Use any riflemen the player has
+	if (lastRfilemenAttackTime + 5 <= gameTime)
+	{
+		for (int i = 0; i < playerData.getRiflemen(); i++)
+		{
+			enemies[i]->decrementHealth(5);
+			audioManager->PlaySample(gunShotSampleID);
+		}
+		lastRfilemenAttackTime = gameTime;
+	}
 
 	//check all the alive enemies to see if they need to be killed
 	for (int i = 0; i < enemies.size(); i++)
@@ -568,17 +592,23 @@ void SceneApp::GameRender()
 
 void SceneApp::StoreInit()
 {
+	b2Vec2 gravity(0.0f, 0.0f);
+	world_ = new b2World(gravity);
+	// create the renderer for draw 3D geometry
+	renderer_3d_ = gef::Renderer3D::Create(platform_);
+
+	purchaseSfx = audioManager->LoadSample("purchasemade.wav", platform_);
+
 	audioManager->LoadMusic("StoreMusic.wav", platform_);
 	audioManager->PlayMusic();
 
-	storeItem.push_back(new StoreItem("playstation-circle-dark-icon.png", &platform_, 100));
-	storeItem[0]->set_position(gef::Vector4(platform_.width() * 0.25f, platform_.height() * 0.5f,0));
-
-	storeItem.push_back(new StoreItem("playstation-square-dark-icon.png", &platform_, 150));
-	storeItem[1]->set_position(gef::Vector4(platform_.width() * 0.50f, platform_.height() * 0.5f, 0));
-
-	storeItem.push_back(new StoreItem("playstation-triangle-dark-icon.png", &platform_,2100));
-	storeItem[2]->set_position(gef::Vector4(platform_.width() * 0.75f, platform_.height() * 0.5f, 0));
+	//Healthpack
+	storeItem.push_back(new StoreItem("healthpackicon.png", &platform_, 100, "Health", world_, b2Vec2(-10,5)));
+	storeItem[0]->set_position(gef::Vector4(platform_.width() * 0.05f, platform_.height() * 0.1f,0));
+	
+	//Rifeman
+	storeItem.push_back(new StoreItem("on-sight.png", &platform_, 100, "Rifleman", world_, b2Vec2(-10, 2.5f)));
+	storeItem[1]->set_position(gef::Vector4(platform_.width() * 0.05f, platform_.height() * 0.3f,0));
 }
 
 void SceneApp::StoreRelease()
@@ -590,15 +620,43 @@ void SceneApp::StoreRelease()
 
 	storeItem.clear();
 	audioManager->StopMusic();
+	audioManager->StopPlayingSampleVoice(purchaseSfx);
 	audioManager->UnloadMusic();
+	audioManager->UnloadAllSamples();
+	purchaseSfx = NULL;
+
+	delete renderer_3d_;
+	renderer_3d_ = NULL;
+
+	delete world_;
+	world_ = NULL;
 }
 
 void SceneApp::StoreUpdate(float frame_time)
 {
+	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
+
+	testState = true;
+	ProcessTouchInput();
 }
 
 void SceneApp::StoreRender()
 {
+	// projection
+	float fov = gef::DegToRad(45.0f);
+	float aspect_ratio = (float)platform_.width() / (float)platform_.height();
+	gef::Matrix44 projection_matrix;
+	projection_matrix = platform_.PerspectiveProjectionFov(fov, aspect_ratio, 0.1f, 100.0f);
+	renderer_3d_->set_projection_matrix(projection_matrix);
+
+	// view
+	gef::Vector4 camera_eye(-2.0f, 2.0f, 15.0f);
+	gef::Vector4 camera_lookat(0.0f, 0.0f, 0.0f);
+	gef::Vector4 camera_up(0.0f, 1.0f, 0.0f);
+	gef::Matrix44 view_matrix;
+	view_matrix.LookAt(camera_eye, camera_lookat, camera_up);
+	renderer_3d_->set_view_matrix(view_matrix);
+
 	sprite_renderer_->Begin();
 	
 	for (int i = 0; i < storeItem.size(); i++)
@@ -607,7 +665,7 @@ void SceneApp::StoreRender()
 
 		font_->RenderText(
 			sprite_renderer_,
-			gef::Vector4(storeItem[i]->position().x(), storeItem[i]->position().y() + 50.0f, 0.0f),
+			gef::Vector4(storeItem[i]->position().x(), storeItem[i]->position().y() + 25.0f, 0.0f),
 			1.0f,
 			0xffffffff,
 			gef::TJ_CENTRE,
@@ -746,29 +804,54 @@ void SceneApp::ProcessTouchInput()
 					gef::Vector2 screen_position = touch->position;
 					gef::Vector4 ray_start_position, ray_direction;
 					GetScreenPosRay(screen_position, renderer_3d_->projection_matrix(), renderer_3d_->view_matrix(), ray_start_position, ray_direction);
-
-					//Here we need to loop through all the enemy bodies and see if the player hit them.
-
-					for (int i = 0; i < enemies.size(); i++)
+					
+					switch (gameState)
 					{
-						if (enemies	[i]->getBody())
+					case SceneApp::Level1:
+						//Here we need to loop through all the enemy bodies and see if the player hits them.
+						for (int i = 0; i < enemies.size(); i++)
 						{
-							// Create a sphere around the position of the player body
-							// the radius can be changed for larger objects
-							// radius= 0.5f is a sensible value for a 1x1x1 cube
-							gef::Vector4 sphere_centre(enemies[i]->getBody()->GetPosition().x, enemies[i]->getBody()->GetPosition().y, 0.0f);
-							float  sphere_radius = 1.5f;
-
-							// check to see if the ray intersects with the bound sphere that is around the player
-							if (RaySphereIntersect(ray_start_position, ray_direction, sphere_centre, sphere_radius))
+							if (enemies[i]->getBody())
 							{
-								//Player touched an enemy do something
-								enemies[i]->decrementHealth(10); //Lower this by the damage of the current weapon
+								// Create a sphere around the position of the enemy body
+								// the radius can be changed for larger objects
+								// radius= 0.5f is a sensible value for a 1x1x1 cube
+								gef::Vector4 sphere_centre(enemies[i]->getBody()->GetPosition().x, enemies[i]->getBody()->GetPosition().y, 0.0f);
+								float  sphere_radius = 1.5f;
+
+								// check to see if the ray intersects with the bound sphere that is around the player
+								if (RaySphereIntersect(ray_start_position, ray_direction, sphere_centre, sphere_radius))
+								{
+									//Player touched an enemy do something
+									enemies[i]->decrementHealth(activeWeapon.getDamage()); //Lower this by the damage of the current weapon
+								}
 							}
 						}
+						//audioManager->PlaySample(gunShotSampleID, false);
+						break;
+					case SceneApp::Store:
+						//Here we need to loop through all the store items and see if the player interacts with them.
+						for (int i = 0; i < storeItem.size(); i++)
+						{
+							if (storeItem[i])
+							{
+								gef::Vector4 sphere_centre(storeItem[i]->getBody()->GetPosition().x, storeItem[i]->getBody()->GetPosition().y, 0.0f);
+								float  sphere_radius = 1.5f;
+
+								// check to see if the ray intersects with the bound sphere that is around the player
+								if (RaySphereIntersect(ray_start_position, ray_direction, sphere_centre, sphere_radius))
+								{
+									//Player touched an enemy do something
+									playerData = storeItem[i]->run(playerData); //Lower this by the damage of the current weapon
+									audioManager->PlaySample(purchaseSfx,false);
+								}
+							}
+						}
+						break;
+					default:
+						break;
 					}
-					//audioManager->PlaySample(gunShotSampleID, false);
-					testRender = true;
+
 				}
 			}
 			else if (activeTouchID == touch->id)

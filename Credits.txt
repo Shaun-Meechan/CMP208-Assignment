@@ -8,3 +8,9 @@ License: http://creativecommons.org/licenses/by/4.0/
 
 FPS Icon:
 https://opengameart.org/content/fps-icons-51-high-res-icons
+
+Game background sfx:
+https://freesound.org/people/jmiddlesworth/sounds/364663/
+
+Wall model and texture:
+https://www.models-resource.com/gamecube/gotchaforce/model/22088/

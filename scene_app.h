@@ -104,11 +104,13 @@ private:
 
 
 	//Game Variables
+	float lastRfilemenAttackTime = 0.0f;
 	gef::Texture* gameBackgroundSprite;
 	bool firstRun = true;
 	gef::Vector2 touchPosition;
 	Int32 activeTouchID;
 	int gunShotSampleID;
+	int backgroundSFXID;
 	std::vector <EnemyObject*> enemies;
 	PlayerObject* Player;
 	WallObject* wallObject;
@@ -131,6 +133,8 @@ private:
 
 	//Store Variables
 	std::vector<StoreItem*> storeItem;
+	int purchaseSfx;
+	bool testState = false;
 	// Global Functions
 	void updateStateMachine(int newID, int oldID);
 };

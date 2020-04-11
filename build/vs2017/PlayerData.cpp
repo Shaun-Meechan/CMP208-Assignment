@@ -92,3 +92,26 @@ void PlayerData::removeMostRecentWeapon()
 {
 	weapons.erase(weapons.end()-1);
 }
+
+void PlayerData::addHealth(int value)
+{
+	if (health + value > 100)
+	{
+		health = 100;
+	}
+	else
+	{
+		health = health + value;
+	}
+}
+
+void PlayerData::addRiflemen(int value)
+{
+	riflemen = riflemen + value;
+}
+
+int PlayerData::getRiflemen()
+{
+	return riflemen;
+}
+
