@@ -82,7 +82,7 @@ private:
 	void FrontendUpdate(float frame_time);
 	void FrontendRender();
 
-	void GameInit();
+	void GameInit(int enemiesToMake);
 	void GameRelease();
 	void GameUpdate(float frame_time);
 	void GameRender();
@@ -104,6 +104,7 @@ private:
 
 
 	//Game Variables
+	unsigned int roundCounter = 1;
 	float lastRfilemenAttackTime = 0.0f;
 	float lastRepairTime = 0.0f;
 	gef::Texture* gameBackgroundSprite;

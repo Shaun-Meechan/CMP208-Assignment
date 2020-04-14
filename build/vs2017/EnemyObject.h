@@ -15,7 +15,8 @@ namespace gef
 class EnemyObject: public GameObject
 {
 public:
-	EnemyObject(gef::Scene* sceneFile, b2World* world, float xSpawnValue);
+	EnemyObject(gef::Scene* sceneFile, b2World* world, float xSpawnValue, gef::Mesh* mesh);
+	~EnemyObject();
 	b2Body* getBody();
 	int getHealth();
 	void decrementHealth(int value);
@@ -32,14 +33,12 @@ private:
 	b2BodyDef bodyDef;
 	b2PolygonShape shape;
 	b2FixtureDef fixtureDef;
-	gef::MeshInstance enemyMesh;
+	//gef::MeshInstance enemyMesh;
 	b2Vec2* spawnPoints[3];
-	gef::Mesh* getMeshFromSceneAssets(gef::Scene* scene);
 	int health;
 	gef::Vector4 objectTranslation;
 	gef::Matrix44 scaleMatrix;
 	gef::Matrix44 rotationMatrix;
 	gef::Matrix44 translationMatrix;
-
 };
 

@@ -23,9 +23,9 @@ void PlayerData::decrementCredits(int value)
 
 void PlayerData::decrementHealth(float time, int value)
 {
-	if (lastDamageTime + 1 <= time)
+	if (lastDamageTime + 0.5f <= time)
 	{
-		//We last took damge 1 second ago, take damage again.
+		//We last took damge 0.5 seconds ago, deal damage.
 		health--;
 		lastDamageTime = time;
 	}
@@ -60,7 +60,7 @@ void PlayerData::addWeapon(Weapon newWeapon)
 		gef::DebugOut("ERROR: Weapon has a null icon!");
 		return;
 	}
-	else if (newWeapon.getReload() == NULL)
+	else if (newWeapon.getReloadTime() == NULL)
 	{
 		gef::DebugOut("ERROR: Weapon has a null reload time!");
 		return;
@@ -123,5 +123,10 @@ void PlayerData::addRepairGuys(int value)
 int PlayerData::getReapirGuys()
 {
 	return repairGuys;
+}
+
+void PlayerData::setLastDamageTime(float value)
+{
+	lastDamageTime = value;
 }
 

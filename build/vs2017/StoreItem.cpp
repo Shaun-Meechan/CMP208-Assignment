@@ -26,7 +26,7 @@ StoreItem::StoreItem(const char* pngFileName, gef::Platform* platform, int newCo
 	}
 	else if (newType == "Weapon")
 	{
-		type == itemType::Weapon;
+		type = itemType::Weapon;
 	}
 	else
 	{
@@ -111,15 +111,14 @@ bool StoreItem::didPurchaseSucced()
 {
 	if (purchaseSuccessful == true)
 	{
+		purchaseSuccessful = false;
 		return true;
 	}
 	else
 	{
+		purchaseSuccessful = false;
 		return false;
 	}
-
-	//Reset the value of purchase successful.
-	purchaseSuccessful = false;
 }
 
 bool StoreItem::canPlayerAfford(PlayerData* playerData)

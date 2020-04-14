@@ -1,11 +1,11 @@
 #include "EnemyObject.h"
 #include <system\debug_log.h>
 
-EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world, float xSpawnValue)
+EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world, float xSpawnValue, gef::Mesh* mesh)
 {
 	health = 100;
 	// setup the mesh for the enemy
-	this->set_mesh(getMeshFromSceneAssets(sceneFile));
+	this->set_mesh(mesh);
 	// create a physics body for the enemy
 	bodyDef.type = b2_dynamicBody;
 
@@ -54,6 +54,16 @@ EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world, float xSpawnValu
 
 	scaleMatrix.Scale(gef::Vector4(0.2f, 0.2f, 0.2f));
 	rotationMatrix.RotationY(gef::DegToRad(90));
+}
+
+EnemyObject::~EnemyObject()
+{
+	//delete body;
+	//delete bodyDef;
+	//delete shape;
+	//delete fixtureDef;
+	//delete enemyMesh;
+	//delete spawnPoints;
 }
 
 b2Body* EnemyObject::getBody()
@@ -106,18 +116,4 @@ void EnemyObject::update()
 {
 	objectTranslation = gef::Vector4(body->GetPosition().x, body->GetPosition().y, 0);
 	translationMatrix.SetTranslation(objectTranslation);
-}
-
-gef::Mesh* EnemyObject::getMeshFromSceneAssets(gef::Scene* scene)
-{
-	gef::Mesh* mesh = NULL;
-
-	// if the scene data contains at least one mesh
-	// return the first mesh
-	if (scene && scene->meshes.size() > 0)
-	{
-		mesh = scene->meshes.front();
-	}
-
-	return mesh;
 }

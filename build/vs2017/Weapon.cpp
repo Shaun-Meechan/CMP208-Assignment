@@ -29,7 +29,7 @@ int Weapon::getAmmo()
 	return ammo;
 }
 
-float Weapon::getReload()
+float Weapon::getReloadTime()
 {
 	return reloadTime;
 }
@@ -39,13 +39,14 @@ string Weapon::getName()
 	return name;
 }
 
-void Weapon::create(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newAmmo, float newReloadTime, char* newName)
+void Weapon::create(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newMaxAmmo, float newReloadTime, char* newName)
 {
 	icon = CreateTextureFromPNG(pngFileName, *platform);
 
 	cost = newCost;
 	damage = newDamage;
-	ammo = newAmmo;
+	maxAmmo = newMaxAmmo;
+	ammo = maxAmmo;
 	reloadTime = newReloadTime;
 	name = newName;
 
@@ -53,4 +54,29 @@ void Weapon::create(const char* pngFileName, gef::Platform* platform, int newCos
 	this->set_width(64.0f);
 
 	this->set_texture(icon);
+}
+
+void Weapon::decrementAmmo(int value)
+{
+	ammo = ammo - value;
+}
+
+float Weapon::getRanOutOfAmmoTime()
+{
+	return ranOutOfAmmoTime;
+}
+
+void Weapon::setRanOutOfAmmoTime(float newTime)
+{
+	ranOutOfAmmoTime = newTime;
+}
+
+int Weapon::getMaxAmmo()
+{
+	return maxAmmo;
+}
+
+void Weapon::setAmmo(int value)
+{
+	ammo = value;
 }

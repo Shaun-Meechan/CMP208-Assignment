@@ -337,8 +337,10 @@ void SceneApp::FrontendRender()
 	sprite_renderer_->End();
 }
 
-void SceneApp::GameInit()
+void SceneApp::GameInit(int enemiesToMake)
 {
+	//Seed a new seed for the random number generator
+	srand(time(NULL));
 	const char* sceneAssetFilename;
 	// initialise the physics world
 	b2Vec2 gravity(0.0f,0.0f);
@@ -347,10 +349,12 @@ void SceneApp::GameInit()
 	//Initalize our time variable
 	gameTime = 0;
 
+	//Reset our player damage time
+	playerData.setLastDamageTime(0.0f);
 	//Reset our rifleman attack time
 	lastRfilemenAttackTime = 0;
-	//Define how many enemies to make, if it is < 0 program will not respond
-	unsigned int enemiesToMake = 8;
+	//Rest our repair time
+	lastRepairTime = 0;
 	// Make sure there is a panel to detect touch, activate if it exists
 	if (input_manager_ && input_manager_->touch_manager() && (input_manager_->touch_manager()->max_num_panels() > 0))
 	{
@@ -361,7 +365,7 @@ void SceneApp::GameInit()
 	if (firstRun == true)
 	{
 		handgun = new Weapon();
-		handgun->create("handgun.png", &platform_, 100, 10, 10, 2.5f, "Handgun");
+		handgun->create("handgun.png", &platform_, 100, 30, 10, 2.5f, "Handgun");
 		playerData.addWeapon(*handgun);
 		playerData.setActiveWeapon(0);
 		firstRun = false;
@@ -414,15 +418,17 @@ void SceneApp::GameInit()
 	wallObject->updateScale(gef::Vector4(0.55f, 0.1f, 0.1f));
 	wallObject->updateRotationZ(90);
 
+	gef::Mesh* enemyMesh = getMeshFromSceneAssets(enemySceneAsset);
+
 	for (unsigned int i = 0; i < enemiesToMake; i++)
 	{
-		enemies.push_back(new EnemyObject(enemySceneAsset,world_,-10.0f - (i*1.25)));
+		enemies.push_back(new EnemyObject(enemySceneAsset,world_,-10.0f - (i), enemyMesh));
 	}
 
 	//Move alive enemeies
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		enemies[i]->getBody()->ApplyForceToCenter(b2Vec2(3, 0), true);
+		enemies[i]->getBody()->ApplyForceToCenter(b2Vec2(5, 0), true);
 	}
 
 	activeWeapon = playerData.getActiveWeapon();
@@ -462,7 +468,11 @@ void SceneApp::GameRelease()
 	delete wallObject;
 	wallObject = NULL;
 
+	delete gameBackgroundSprite;
+	gameBackgroundSprite = NULL;
+
 	enemies.clear();
+	enemies.shrink_to_fit();
 
 	gameTime = 0;
 
@@ -471,11 +481,14 @@ void SceneApp::GameRelease()
 
 	//Audio unload
 	audioManager->StopMusic();
+	audioManager->UnloadMusic();
 	audioManager->StopPlayingSampleVoice(gunShotSampleID);
 	audioManager->StopPlayingSampleVoice(backgroundSFXID);
 	audioManager->UnloadAllSamples();
 	gunShotSampleID = NULL;
 	backgroundSFXID = NULL;
+
+	roundCounter += 1;
 }
 
 void SceneApp::GameUpdate(float frame_time)
@@ -492,6 +505,8 @@ void SceneApp::GameUpdate(float frame_time)
 		enemies[i]->update();
 		if (enemies[i]->getHealth() <= 0)
 		{
+			world_->DestroyBody(enemies[i]->getBody());
+			delete enemies[i];
 			enemies.erase(enemies.begin() + i);//Remove the now dead enemy
 			playerData.addCredits(10);
 		}
@@ -522,6 +537,14 @@ void SceneApp::GameUpdate(float frame_time)
 	}
 
 	ProcessTouchInput();
+
+	if (activeWeapon.getAmmo() <= 0)
+	{
+		if (gameTime >= activeWeapon.getReloadTime() + activeWeapon.getRanOutOfAmmoTime())
+		{
+			activeWeapon.setAmmo(activeWeapon.getMaxAmmo());
+		}
+	}
 
 	UpdateSimulation(frame_time);
 
@@ -723,11 +746,28 @@ void SceneApp::StoreRender()
 
 	font_->RenderText(
 		sprite_renderer_,
-		gef::Vector4(platform_.width()* 0.9f, platform_.height() * 0.1f, 0.0f),
+		gef::Vector4(platform_.width()* 0.9f, platform_.height() * 0.01f, 0.0f),
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
 		"Credits: %i", playerData.getCredits());
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.9f, platform_.height() * 0.05f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Riflemen: %i", playerData.getRiflemen());
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.9f, platform_.height() * 0.09f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"RepairGuys: %i", playerData.getReapirGuys());
+
 
 	sprite_renderer_->End();
 }
@@ -809,7 +849,7 @@ void SceneApp::updateStateMachine(int newID, int oldID)
 		{
 			FailRelease();
 		}
-		GameInit();
+		GameInit(roundCounter * 2);
 		gameState = Level1;
 		break;
 	case 2://Store
@@ -864,6 +904,16 @@ void SceneApp::ProcessTouchInput()
 					switch (gameState)
 					{
 					case SceneApp::Level1:
+						if (activeWeapon.getAmmo() <= 0)
+						{
+							break;
+						}
+						activeWeapon.decrementAmmo(1);
+
+						if (activeWeapon.getAmmo() <= 0)
+						{
+							activeWeapon.setRanOutOfAmmoTime(gameTime);
+						}
 						//Here we need to loop through all the enemy bodies and see if the player hits them.
 						for (int i = 0; i < enemies.size(); i++)
 						{
