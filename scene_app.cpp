@@ -263,6 +263,16 @@ void SceneApp::UpdateSimulation(float frame_time)
 					bodyB->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 				}
 			}
+
+			if (enemy)
+			{
+				if (gameObjectA->type() == ENEMY && gameObjectB->type() == ENEMY)
+				{
+					gef::DebugOut("Two enemies have collided!\n");
+					bodyA->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+					bodyB->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+				}
+			}
 		}
 		// Get next contact point
 		contact = contact->GetNext();
@@ -406,7 +416,7 @@ void SceneApp::GameInit()
 
 	for (unsigned int i = 0; i < enemiesToMake; i++)
 	{
-		enemies.push_back(new EnemyObject(enemySceneAsset,world_));
+		enemies.push_back(new EnemyObject(enemySceneAsset,world_,-10.0f - (i*1.25)));
 	}
 
 	//Move alive enemeies
@@ -863,7 +873,7 @@ void SceneApp::ProcessTouchInput()
 								// the radius can be changed for larger objects
 								// radius= 0.5f is a sensible value for a 1x1x1 cube
 								gef::Vector4 sphere_centre(enemies[i]->getBody()->GetPosition().x, enemies[i]->getBody()->GetPosition().y, 0.0f);
-								float  sphere_radius = 1.5f;
+								float  sphere_radius = 0.9f;
 
 								// check to see if the ray intersects with the bound sphere that is around the player
 								if (RaySphereIntersect(ray_start_position, ray_direction, sphere_centre, sphere_radius))
