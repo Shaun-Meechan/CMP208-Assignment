@@ -105,6 +105,7 @@ private:
 
 	//Game Variables
 	float lastRfilemenAttackTime = 0.0f;
+	float lastRepairTime = 0.0f;
 	gef::Texture* gameBackgroundSprite;
 	bool firstRun = true;
 	gef::Vector2 touchPosition;

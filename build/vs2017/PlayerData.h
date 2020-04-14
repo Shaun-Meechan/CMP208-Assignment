@@ -16,12 +16,15 @@ public:
 	void addHealth(int value);
 	void addRiflemen(int value);
 	int getRiflemen();
+	void addRepairGuys(int value);
+	int getReapirGuys();
 private:
 	int credits = 0;
 	std::vector<Weapon*> weapons;
 	Weapon activeWeapon;
 	int health = 100;
 	float lastDamageTime = 0.0f;
-	int riflemen = 0;
+	unsigned int riflemen = 0;
+	unsigned int repairGuys = 0;
 };
 

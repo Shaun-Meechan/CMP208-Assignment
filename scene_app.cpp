@@ -501,6 +501,16 @@ void SceneApp::GameUpdate(float frame_time)
 		lastRfilemenAttackTime = gameTime;
 	}
 
+	//Use any Repair Guys the player has
+	if (lastRepairTime + 5 <= gameTime)
+	{
+		for (int i = 0; i < playerData.getReapirGuys(); i++)
+		{
+			playerData.addHealth(2);
+		}
+		lastRepairTime = gameTime;
+	}
+
 	ProcessTouchInput();
 
 	UpdateSimulation(frame_time);
@@ -577,13 +587,29 @@ void SceneApp::GameRender()
 
 	font_->RenderText(
 		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f + 400.0f, platform_.height() * 0.5f - 230.0f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Riflemen: %i", playerData.getRiflemen());
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f + 400.0f, platform_.height() * 0.5f - 210.0f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"RepairGuys: %i", playerData.getReapirGuys());
+
+	font_->RenderText(
+		sprite_renderer_,
 		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 220.0f, 0.0f),
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
 		"Ammo count: %i", activeWeapon.getAmmo());
 
-	activeWeapon.set_position(gef::Vector4(platform_.width() * 0.5f + 400.f, platform_.height() * 0.5f - 200.0f, 0));
+	activeWeapon.set_position(gef::Vector4(platform_.width() * 0.5f + 400.f, platform_.height() * 0.5f - 160.0f, 0));
 	sprite_renderer_->DrawSprite(activeWeapon);
 
 	gef::Sprite background;
@@ -616,6 +642,10 @@ void SceneApp::StoreInit()
 	//Rifeman
 	storeItem.push_back(new StoreItem("on-sight.png", &platform_, 100, "Rifleman", world_, b2Vec2(-10, 2.5f)));
 	storeItem[1]->set_position(gef::Vector4(platform_.width() * 0.05f, platform_.height() * 0.3f,0));
+
+	//Repair guy
+	storeItem.push_back(new StoreItem("hammer-nails.png", &platform_, 100, "RepairGuy", world_, b2Vec2(-10, 0.0f)));
+	storeItem[2]->set_position(gef::Vector4(platform_.width() * 0.05f, platform_.height() * 0.5f,0));
 }
 
 void SceneApp::StoreRelease()

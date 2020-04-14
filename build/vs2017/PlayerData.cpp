@@ -115,3 +115,13 @@ int PlayerData::getRiflemen()
 	return riflemen;
 }
 
+void PlayerData::addRepairGuys(int value)
+{
+	repairGuys = repairGuys + value;
+}
+
+int PlayerData::getReapirGuys()
+{
+	return repairGuys;
+}
+

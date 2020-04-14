@@ -14,3 +14,9 @@ https://freesound.org/people/jmiddlesworth/sounds/364663/
 
 Wall model and texture:
 https://www.models-resource.com/gamecube/gotchaforce/model/22088/
+
+Purchase error sfx:
+https://freesound.org/people/lluiset7/sounds/141334/
+
+Purchase succesfull sfx:
+https://freesound.org/people/kiddpark/sounds/201159/

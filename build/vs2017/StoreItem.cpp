@@ -62,26 +62,36 @@ PlayerData StoreItem::run(PlayerData playerData)
 			playerData.addHealth(10);
 			purchaseSuccessful = true;
 			playerData.decrementCredits(cost);
+			break;
 		}
 		else
 		{
 			break;
 		}
-		break;
 	case itemType::Rifleman:
 		if (canPlayerAfford(&playerData) == true)
 		{
 			playerData.addRiflemen(1);
 			purchaseSuccessful = true;
 			playerData.decrementCredits(cost);
+			break;
 		}
 		else
 		{
 			break;
 		}
-		break;
 	case itemType::RepairGuy:
-		break;
+		if (canPlayerAfford(&playerData) == true)
+		{
+			playerData.addRepairGuys(1);
+			purchaseSuccessful = true;
+			playerData.decrementCredits(cost);
+			break;
+		}
+		else
+		{
+			break;
+		}
 	case itemType::Weapon:
 		break;
 	default:
