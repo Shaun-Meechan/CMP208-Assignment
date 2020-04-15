@@ -12,14 +12,15 @@
 #include <graphics/sprite.h>
 #include "graphics/scene.h"
 #include <vector>
-#include <EnemyObject.h>
+#include "EnemyObject.h"
 #include <math.h>
-#include <PlayerObject.h>
-#include <StoreItem.h>
-#include <Weapon.h>
+#include "PlayerObject.h"
+#include "StoreItem.h"
+#include "Weapon.h"
 #include <string>
-#include <PlayerData.h>
+#include "PlayerData.h"
 #include "WallObject.h"
+#include "StoreWeaponItem.h"
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
 {
@@ -135,6 +136,7 @@ private:
 
 	//Store Variables
 	std::vector<StoreItem*> storeItem;
+	std::vector<StoreWeaponItem*> storeWeapons;
 	int purchaseSfx = 0;
 	int purchasefailSFX = 0;
 	bool testState = false;

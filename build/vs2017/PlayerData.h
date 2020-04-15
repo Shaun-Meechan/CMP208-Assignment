@@ -19,8 +19,9 @@ public:
 	void addRepairGuys(int value);
 	int getReapirGuys();
 	void setLastDamageTime(float value);
+	int getWeaponsSize();
 private:
-	int credits = 0;
+	int credits = 250;
 	std::vector<Weapon*> weapons;
 	Weapon activeWeapon;
 	int health = 100;

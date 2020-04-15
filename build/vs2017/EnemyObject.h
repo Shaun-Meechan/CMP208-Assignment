@@ -34,7 +34,7 @@ private:
 	b2PolygonShape shape;
 	b2FixtureDef fixtureDef;
 	//gef::MeshInstance enemyMesh;
-	b2Vec2* spawnPoints[3];
+	b2Vec2* spawnPoints[5];
 	int health;
 	gef::Vector4 objectTranslation;
 	gef::Matrix44 scaleMatrix;

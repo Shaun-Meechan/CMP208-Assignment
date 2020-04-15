@@ -227,6 +227,7 @@
     <ClCompile Include="PlayerData.cpp" />
     <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="StoreItem.cpp" />
+    <ClCompile Include="StoreWeaponItem.cpp" />
     <ClCompile Include="WallObject.cpp" />
     <ClCompile Include="Weapon.cpp" />
   </ItemGroup>
@@ -239,6 +240,7 @@
     <ClInclude Include="PlayerData.h" />
     <ClInclude Include="PlayerObject.h" />
     <ClInclude Include="StoreItem.h" />
+    <ClInclude Include="StoreWeaponItem.h" />
     <ClInclude Include="WallObject.h" />
     <ClInclude Include="Weapon.h" />
   </ItemGroup>

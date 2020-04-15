@@ -15,14 +15,17 @@ StoreItem::StoreItem(const char* pngFileName, gef::Platform* platform, int newCo
 	if (newType == "Health")
 	{
 		type = itemType::Health;
+		name = "Health";
 	}
 	else if (newType == "Rifleman")
 	{
 		type = itemType::Rifleman;
+		name = "Rifleman";
 	}
 	else if (newType == "RepairGuy")
 	{
 		type = itemType::RepairGuy;
+		name = "Repair Guy";
 	}
 	else if (newType == "Weapon")
 	{
@@ -30,22 +33,19 @@ StoreItem::StoreItem(const char* pngFileName, gef::Platform* platform, int newCo
 	}
 	else
 	{
-		gef::DebugOut("ERROR: Unable to set type!");
+		gef::DebugOut("ERROR: Unable to set type!\n");
 	}
 
 	if (icon == NULL)
 	{
-		gef::DebugOut("ERROR: Unable to set store Item Icon");
+		gef::DebugOut("ERROR: Unable to set store Item Icon\n");
 	}
 
 	bodyDef.position.Set(bodyPos.x, bodyPos.y);
 
 	body = world->CreateBody(&bodyDef);
 
-	//this->UpdateFromSimulation(body);
-
 	body->SetUserData(this);
-
 }
 
 int StoreItem::getCost()
@@ -121,6 +121,11 @@ bool StoreItem::didPurchaseSucced()
 	}
 }
 
+char* StoreItem::getName()
+{
+	return name;
+}
+
 bool StoreItem::canPlayerAfford(PlayerData* playerData)
 {
 	if ((playerData->getCredits() - cost) < 0)
@@ -132,4 +137,3 @@ bool StoreItem::canPlayerAfford(PlayerData* playerData)
 		return true;
 	}
 }
-

@@ -130,3 +130,8 @@ void PlayerData::setLastDamageTime(float value)
 	lastDamageTime = value;
 }
 
+int PlayerData::getWeaponsSize()
+{
+	return weapons.size();
+}
+

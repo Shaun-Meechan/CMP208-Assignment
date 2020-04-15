@@ -669,16 +669,23 @@ void SceneApp::StoreInit()
 	audioManager->PlayMusic();
 
 	//Healthpack
-	storeItem.push_back(new StoreItem("healthpackicon.png", &platform_, 100, "Health", world_, b2Vec2(-10,5)));
+	storeItem.push_back(new StoreItem("healthpackicon.png", &platform_, 50, "Health", world_, b2Vec2(-9,5)));
 	storeItem[0]->set_position(gef::Vector4(platform_.width() * 0.05f, platform_.height() * 0.1f,0));
 	
 	//Rifeman
-	storeItem.push_back(new StoreItem("on-sight.png", &platform_, 100, "Rifleman", world_, b2Vec2(-10, 2.5f)));
+	storeItem.push_back(new StoreItem("on-sight.png", &platform_, 100, "Rifleman", world_, b2Vec2(-9, 2.5f)));
 	storeItem[1]->set_position(gef::Vector4(platform_.width() * 0.05f, platform_.height() * 0.3f,0));
 
 	//Repair guy
-	storeItem.push_back(new StoreItem("hammer-nails.png", &platform_, 100, "RepairGuy", world_, b2Vec2(-10, 0.0f)));
+	storeItem.push_back(new StoreItem("hammer-nails.png", &platform_, 100, "RepairGuy", world_, b2Vec2(-9, 0.0f)));
 	storeItem[2]->set_position(gef::Vector4(platform_.width() * 0.05f, platform_.height() * 0.5f,0));
+
+	//Weapons
+	//Sniper
+	Weapon* sniper = new Weapon();
+	sniper->create("sniper_icon_2.png", &platform_, 250, 20, 1, 5.0f, "Sniper");
+	storeWeapons.push_back(new StoreWeaponItem("sniper_icon_2.png", &platform_, 250, world_, b2Vec2(0, 5),*sniper));
+	storeWeapons[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1, 0));
 }
 
 void SceneApp::StoreRelease()
@@ -689,6 +696,9 @@ void SceneApp::StoreRelease()
 	}
 
 	storeItem.clear();
+
+	storeWeapons.clear();
+
 	audioManager->StopMusic();
 	audioManager->StopPlayingSampleVoice(purchaseSfx);
 	audioManager->StopPlayingSampleVoice(purchasefailSFX);
@@ -742,11 +752,40 @@ void SceneApp::StoreRender()
 			gef::TJ_CENTRE,
 			"%i", storeItem[i]->getCost());
 
+		font_->RenderText(
+			sprite_renderer_,
+			gef::Vector4(storeItem[i]->position().x() + 90.0f, storeItem[i]->position().y(), 0.0f),
+			1.0f,
+			0xffffffff,
+			gef::TJ_CENTRE,
+			storeItem[i]->getName());
+	}
+
+	//Draw weapons
+	for (int i = 0; i < storeWeapons.size(); i++)
+	{
+		sprite_renderer_->DrawSprite(*storeWeapons[i]);
+
+		font_->RenderText(
+			sprite_renderer_,
+			gef::Vector4(storeWeapons[i]->position().x(), storeWeapons[i]->position().y(),0.0f),
+			1.0f,
+			0xffffffff,
+			gef::TJ_CENTRE,
+			"%i", storeWeapons[i]->getCost());
 	}
 
 	font_->RenderText(
 		sprite_renderer_,
-		gef::Vector4(platform_.width()* 0.9f, platform_.height() * 0.01f, 0.0f),
+		gef::Vector4(platform_.width() * 0.9f, platform_.height() * 0.01, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Health: %i", playerData.getHealth());
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width()* 0.9f, platform_.height() * 0.05f, 0.0f),
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
@@ -754,7 +793,7 @@ void SceneApp::StoreRender()
 
 	font_->RenderText(
 		sprite_renderer_,
-		gef::Vector4(platform_.width() * 0.9f, platform_.height() * 0.05f, 0.0f),
+		gef::Vector4(platform_.width() * 0.9f, platform_.height() * 0.09f, 0.0f),
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
@@ -762,7 +801,7 @@ void SceneApp::StoreRender()
 
 	font_->RenderText(
 		sprite_renderer_,
-		gef::Vector4(platform_.width() * 0.9f, platform_.height() * 0.09f, 0.0f),
+		gef::Vector4(platform_.width() * 0.9f, platform_.height() * 0.13f, 0.0f),
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
@@ -942,7 +981,7 @@ void SceneApp::ProcessTouchInput()
 							if (storeItem[i])
 							{
 								gef::Vector4 sphere_centre(storeItem[i]->getBody()->GetPosition().x, storeItem[i]->getBody()->GetPosition().y, 0.0f);
-								float  sphere_radius = 1.5f;
+								float  sphere_radius = 1.0f;
 
 								// check to see if the ray intersects with the bound sphere that is around the player
 								if (RaySphereIntersect(ray_start_position, ray_direction, sphere_centre, sphere_radius))
@@ -960,6 +999,32 @@ void SceneApp::ProcessTouchInput()
 								}
 							}
 						}
+
+						for (int i = 0; i < storeWeapons.size(); i++)
+						{
+							if (storeWeapons[i])
+							{
+								gef::Vector4 sphere_centre(storeWeapons[i]->getBody()->GetPosition().x, storeWeapons[i]->getBody()->GetPosition().y, 0.0f);
+								float  sphere_radius = 1.0f;
+
+								// check to see if the ray intersects with the bound sphere that is around the player
+								if (RaySphereIntersect(ray_start_position, ray_direction, sphere_centre, sphere_radius))
+								{
+									//Player touched an enemy do something
+									playerData = storeWeapons[i]->run(playerData); //Lower this by the damage of the current weapon
+									if (storeWeapons[i]->didPurchaseSucced() == true)
+									{
+										audioManager->PlaySample(purchaseSfx, false);
+										playerData.setActiveWeapon(playerData.getWeaponsSize() - 1);
+									}
+									else
+									{
+										audioManager->PlaySample(purchasefailSFX, false);
+									}
+								}
+							}
+						}
+
 						break;
 					default:
 						break;

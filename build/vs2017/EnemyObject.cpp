@@ -11,10 +11,12 @@ EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world, float xSpawnValu
 
 	//Initialise our spawn points
 	spawnPoints[0] = new b2Vec2(xSpawnValue, 2);
-	spawnPoints[1] = new b2Vec2(xSpawnValue, -1);
-	spawnPoints[2] = new b2Vec2(xSpawnValue, -5);
+	spawnPoints[1] = new b2Vec2(xSpawnValue, 0.5);
+	spawnPoints[2] = new b2Vec2(xSpawnValue, -1);
+	spawnPoints[3] = new b2Vec2(xSpawnValue, -3.5);
+	spawnPoints[4] = new b2Vec2(xSpawnValue, -5);
 
-	int randomNumber = rand() % 3;
+	int randomNumber = rand() % 5;
 
 	switch (randomNumber)
 	{
@@ -26,6 +28,12 @@ EnemyObject::EnemyObject(gef::Scene* sceneFile, b2World* world, float xSpawnValu
 		break;
 	case 2:
 		bodyDef.position = *spawnPoints[2];
+		break;
+	case 3:
+		bodyDef.position = *spawnPoints[3];
+		break;
+	case 4:
+		bodyDef.position = *spawnPoints[4];
 		break;
 	default:
 		gef::DebugOut("ERROR: unable to set enemy spawn points in EnemyObject.cpp");
