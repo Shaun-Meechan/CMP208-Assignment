@@ -36,5 +36,6 @@ private:
 	float ranOutOfAmmoTime = 0.0f;
 	int maxAmmo = 0;
 	char* name;
+	char* sfxPath;
 };
 

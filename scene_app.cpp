@@ -683,7 +683,7 @@ void SceneApp::StoreInit()
 	//Weapons
 	//Sniper
 	Weapon* sniper = new Weapon();
-	sniper->create("sniper_icon_2.png", &platform_, 250, 20, 1, 5.0f, "Sniper");
+	sniper->create("sniper_icon_2.png", &platform_, 250, 40, 1, 1.0f, "Sniper");
 	storeWeapons.push_back(new StoreWeaponItem("sniper_icon_2.png", &platform_, 250, world_, b2Vec2(0, 5),*sniper));
 	storeWeapons[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1, 0));
 }
@@ -1015,7 +1015,6 @@ void SceneApp::ProcessTouchInput()
 									if (storeWeapons[i]->didPurchaseSucced() == true)
 									{
 										audioManager->PlaySample(purchaseSfx, false);
-										playerData.setActiveWeapon(playerData.getWeaponsSize() - 1);
 									}
 									else
 									{

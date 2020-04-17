@@ -71,6 +71,7 @@ void PlayerData::addWeapon(Weapon newWeapon)
 		return;
 	}
 	weapons.push_back(&newWeapon);
+	activeWeapon = *weapons.back();
 	return;
 }
 
@@ -134,4 +135,3 @@ int PlayerData::getWeaponsSize()
 {
 	return weapons.size();
 }
-
