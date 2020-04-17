@@ -404,6 +404,7 @@ void SceneApp::GameInit(int enemiesToMake)
 	//Load our audio samples
 	gunShotSampleID = audioManager->LoadSample(playerData.getActiveWeapon().getSfxPath(), platform_);
 	backgroundSFXID = audioManager->LoadSample("gamebackgroundsfx.wav", platform_);
+	reloadSfx = audioManager->LoadSample("ReloadSfx.wav", platform_);
 
 	//start our background sfx
 	audioManager->PlaySample(backgroundSFXID, true);
@@ -484,7 +485,7 @@ void SceneApp::GameRelease()
 	audioManager->UnloadAllSamples();
 	gunShotSampleID = NULL;
 	backgroundSFXID = NULL;
-
+	reloadSfx = NULL;
 	roundCounter += 1;
 }
 
@@ -633,13 +634,13 @@ void SceneApp::GameRender()
 
 	font_->RenderText(
 		sprite_renderer_,
-		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f - 220.0f, 0.0f),
+		gef::Vector4(platform_.width() * 0.15f, platform_.height() * 0.05f, 0.0f),
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
 		"Ammo count: %i", activeWeapon.getAmmo());
 
-	activeWeapon.set_position(gef::Vector4(platform_.width() * 0.5f + 400.f, platform_.height() * 0.5f - 160.0f, 0));
+	activeWeapon.set_position(gef::Vector4(platform_.width() * 0.03f, platform_.height() * 0.05f , 0));
 	sprite_renderer_->DrawSprite(activeWeapon);
 
 	gef::Sprite background;
@@ -683,6 +684,11 @@ void SceneApp::StoreInit()
 	sniper.create("sniper_icon_2.png", &platform_, 250, 40, 1, 1.0f, "Sniper","sniperSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("sniper_icon_2.png", &platform_, 250, world_, b2Vec2(0, 5),sniper));
 	storeWeapons[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1, 0));
+	//Assault rifle
+	Weapon assualtRifle = Weapon();
+	assualtRifle.create("assault_rifle_icon_1.png", &platform_, 200, 20, 25, 3.0f, "AssaultRifle", "AssaultRifleSfx.wav");
+	storeWeapons.push_back(new StoreWeaponItem("assault_rifle_icon_1.png", &platform_, 200, world_, b2Vec2(4, 5), assualtRifle));
+	storeWeapons[1]->set_position(gef::Vector4(platform_.width() * 0.7f, platform_.height() * 0.1, 0));
 }
 
 void SceneApp::StoreRelease()
@@ -949,6 +955,7 @@ void SceneApp::ProcessTouchInput()
 						if (activeWeapon.getAmmo() <= 0)
 						{
 							activeWeapon.setRanOutOfAmmoTime(gameTime);
+							audioManager->PlaySample(reloadSfx, false);
 						}
 						//Here we need to loop through all the enemy bodies and see if the player hits them.
 						for (int i = 0; i < enemies.size(); i++)

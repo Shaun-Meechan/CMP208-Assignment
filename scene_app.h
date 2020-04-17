@@ -114,6 +114,7 @@ private:
 	Int32 activeTouchID = 0;
 	int gunShotSampleID = 0;
 	int backgroundSFXID = 0;
+	int reloadSfx = 0;
 	std::vector <EnemyObject*> enemies;
 	PlayerObject* Player;
 	WallObject* wallObject;
