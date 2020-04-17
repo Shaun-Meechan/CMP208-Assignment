@@ -45,6 +45,9 @@ void SceneApp::Init()
 
 	//Debug bool for testing render functions
 	testRender = false;
+
+	//Seed a new seed for the random number generator
+	srand(time(NULL));
 }
 
 void SceneApp::CleanUp()
@@ -339,8 +342,6 @@ void SceneApp::FrontendRender()
 
 void SceneApp::GameInit(int enemiesToMake)
 {
-	//Seed a new seed for the random number generator
-	srand(time(NULL));
 	const char* sceneAssetFilename;
 	// initialise the physics world
 	b2Vec2 gravity(0.0f,0.0f);
@@ -365,7 +366,7 @@ void SceneApp::GameInit(int enemiesToMake)
 	if (firstRun == true)
 	{
 		handgun = new Weapon();
-		handgun->create("handgun.png", &platform_, 100, 30, 10, 2.5f, "Handgun");
+		handgun->create("handgun.png", &platform_, 100, 30, 10, 2.5f, "Handgun","handgunSfx.wav");
 		playerData.addWeapon(*handgun);
 		playerData.setActiveWeapon(0);
 		firstRun = false;
@@ -400,7 +401,7 @@ void SceneApp::GameInit(int enemiesToMake)
 	primitive_builder_ = new PrimitiveBuilder(platform_);
 
 	//Load our audio samples
-	gunShotSampleID = audioManager->LoadSample("gunShot.wav", platform_);
+	gunShotSampleID = audioManager->LoadSample(playerData.getActiveWeapon().getSfxPath(), platform_);
 	backgroundSFXID = audioManager->LoadSample("gamebackgroundsfx.wav", platform_);
 
 	//start our background sfx
@@ -683,7 +684,7 @@ void SceneApp::StoreInit()
 	//Weapons
 	//Sniper
 	Weapon* sniper = new Weapon();
-	sniper->create("sniper_icon_2.png", &platform_, 250, 40, 1, 1.0f, "Sniper");
+	sniper->create("sniper_icon_2.png", &platform_, 250, 40, 1, 1.0f, "Sniper","sniperSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("sniper_icon_2.png", &platform_, 250, world_, b2Vec2(0, 5),*sniper));
 	storeWeapons[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1, 0));
 }
@@ -972,7 +973,7 @@ void SceneApp::ProcessTouchInput()
 								}
 							}
 						}
-						//audioManager->PlaySample(gunShotSampleID, false);
+						audioManager->PlaySample(gunShotSampleID, false);
 						break;
 					case SceneApp::Store:
 						//Here we need to loop through all the store items and see if the player interacts with them.

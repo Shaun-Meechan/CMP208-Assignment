@@ -21,12 +21,13 @@ public:
 	int getAmmo();
 	float getReloadTime();
 	string getName();
-	void create(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newMaxAmmo, float newReloadTime, char* newName);
+	void create(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newMaxAmmo, float newReloadTime, char* newName, char* newSfxPath);
 	void decrementAmmo(int value);
 	float getRanOutOfAmmoTime();
 	void setRanOutOfAmmoTime(float newTime);
 	int getMaxAmmo();
 	void setAmmo(int value);
+	char* getSfxPath();
 private:
 	gef::Texture* icon = NULL;
 	unsigned int cost = 0;

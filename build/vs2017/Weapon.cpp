@@ -39,7 +39,7 @@ string Weapon::getName()
 	return name;
 }
 
-void Weapon::create(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newMaxAmmo, float newReloadTime, char* newName)
+void Weapon::create(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newMaxAmmo, float newReloadTime, char* newName, char* newSfxPath)
 {
 	icon = CreateTextureFromPNG(pngFileName, *platform);
 
@@ -49,6 +49,7 @@ void Weapon::create(const char* pngFileName, gef::Platform* platform, int newCos
 	ammo = maxAmmo;
 	reloadTime = newReloadTime;
 	name = newName;
+	sfxPath = newSfxPath;
 
 	this->set_height(64.0f);
 	this->set_width(64.0f);
@@ -79,4 +80,9 @@ int Weapon::getMaxAmmo()
 void Weapon::setAmmo(int value)
 {
 	ammo = value;
+}
+
+char* Weapon::getSfxPath()
+{
+	return sfxPath;
 }
