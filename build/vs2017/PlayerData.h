@@ -11,7 +11,8 @@ public:
 	void decrementHealth(float time, int value);
 	Weapon getActiveWeapon();
 	void addWeapon(Weapon newWeapon);
-	void setActiveWeapon(int ID);
+	//void setActiveWeapon(int ID);
+	void setActiveWeapon(char* name);
 	void removeMostRecentWeapon();
 	void addHealth(int value);
 	void addRiflemen(int value);
@@ -20,9 +21,10 @@ public:
 	int getReapirGuys();
 	void setLastDamageTime(float value);
 	int getWeaponsSize();
+	bool hasWeapon(char* weaponName);
 private:
 	int credits = 250;
-	std::vector<Weapon*> weapons;
+	std::vector<Weapon> weapons;
 	Weapon activeWeapon;
 	int health = 100;
 	float lastDamageTime = 0.0f;

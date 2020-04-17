@@ -120,7 +120,7 @@ private:
 	gef::Scene* enemySceneAsset;
 	gef::Scene* playerSceneAsset;
 	gef::Scene* wallSceneAsset;
-	Weapon* handgun;
+	Weapon handgun;
 	Weapon activeWeapon;
 	bool testRender;
 	float gameTime;

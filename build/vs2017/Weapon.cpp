@@ -34,7 +34,7 @@ float Weapon::getReloadTime()
 	return reloadTime;
 }
 
-string Weapon::getName()
+char* Weapon::getName()
 {
 	return name;
 }
@@ -86,3 +86,4 @@ char* Weapon::getSfxPath()
 {
 	return sfxPath;
 }
+

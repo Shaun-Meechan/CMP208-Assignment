@@ -365,10 +365,11 @@ void SceneApp::GameInit(int enemiesToMake)
 	//Create the first weapons if it's not been made yet.
 	if (firstRun == true)
 	{
-		handgun = new Weapon();
-		handgun->create("handgun.png", &platform_, 100, 30, 10, 2.5f, "Handgun","handgunSfx.wav");
-		playerData.addWeapon(*handgun);
-		playerData.setActiveWeapon(0);
+		handgun = Weapon();
+		handgun.create("handgun.png", &platform_, 100, 30, 10, 2.5f, "Handgun","handgunSfx.wav");
+		playerData.addWeapon(handgun);
+		//playerData.setActiveWeapon(0);
+		playerData.setActiveWeapon("Handgun");
 		firstRun = false;
 	}
 
@@ -433,11 +434,6 @@ void SceneApp::GameInit(int enemiesToMake)
 	}
 
 	activeWeapon = playerData.getActiveWeapon();
-
-	if (playerData.getActiveWeapon().getName() == "")
-	{
-		gef::DebugOut("ERROR: Unable to read weapon name!");
-	}
 
 	gameBackgroundSprite = CreateTextureFromPNG("groundSprite.png", platform_);
 }
@@ -683,9 +679,9 @@ void SceneApp::StoreInit()
 
 	//Weapons
 	//Sniper
-	Weapon* sniper = new Weapon();
-	sniper->create("sniper_icon_2.png", &platform_, 250, 40, 1, 1.0f, "Sniper","sniperSfx.wav");
-	storeWeapons.push_back(new StoreWeaponItem("sniper_icon_2.png", &platform_, 250, world_, b2Vec2(0, 5),*sniper));
+	Weapon sniper = Weapon();
+	sniper.create("sniper_icon_2.png", &platform_, 250, 40, 1, 1.0f, "Sniper","sniperSfx.wav");
+	storeWeapons.push_back(new StoreWeaponItem("sniper_icon_2.png", &platform_, 250, world_, b2Vec2(0, 5),sniper));
 	storeWeapons[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1, 0));
 }
 

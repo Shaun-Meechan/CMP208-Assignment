@@ -20,7 +20,7 @@ public:
 	int getDamage();
 	int getAmmo();
 	float getReloadTime();
-	string getName();
+	char* getName();
 	void create(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newMaxAmmo, float newReloadTime, char* newName, char* newSfxPath);
 	void decrementAmmo(int value);
 	float getRanOutOfAmmoTime();

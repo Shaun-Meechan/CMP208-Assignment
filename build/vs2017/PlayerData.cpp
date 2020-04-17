@@ -70,23 +70,36 @@ void PlayerData::addWeapon(Weapon newWeapon)
 		gef::DebugOut("ERROR: Weapon has a null name!");
 		return;
 	}
-	weapons.push_back(&newWeapon);
-	activeWeapon = *weapons.back();
+	weapons.push_back(newWeapon);
+	activeWeapon = weapons.back();
 	return;
 }
 
-void PlayerData::setActiveWeapon(int ID)
+//void PlayerData::setActiveWeapon(int ID)
+//{
+//	if (weapons[ID] == NULL)
+//	{
+//		gef::DebugOut("ERROR: No weapon for the ID exists!");
+//		return;
+//	}
+//	else
+//	{
+//		activeWeapon = *weapons[ID];
+//		return;
+//	}
+//}
+
+void PlayerData::setActiveWeapon(char* name)
 {
-	if (weapons[ID] == NULL)
+	for (unsigned int i = 0; i < weapons.size(); i++)
 	{
-		gef::DebugOut("ERROR: No weapon for the ID exists!");
-		return;
+		if (weapons[i].getName() == name)
+		{
+			activeWeapon = weapons[i];
+		}
 	}
-	else
-	{
-		activeWeapon = *weapons[ID];
-		return;
-	}
+
+	gef::DebugOut("ERROR: Unable to set active weapon!\n");
 }
 
 void PlayerData::removeMostRecentWeapon()
@@ -134,4 +147,20 @@ void PlayerData::setLastDamageTime(float value)
 int PlayerData::getWeaponsSize()
 {
 	return weapons.size();
+}
+
+bool PlayerData::hasWeapon(char* weaponName)
+{
+	bool found = false;
+
+	for (unsigned int i = 0; i < weapons.size(); i++)
+	{
+		if (weapons[i].getName() == weaponName)
+		{
+			found = true;
+			return found;
+		}
+	}
+
+	return found;
 }

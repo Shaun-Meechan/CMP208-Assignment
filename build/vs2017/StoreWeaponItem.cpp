@@ -32,11 +32,17 @@ int StoreWeaponItem::getCost()
 
 PlayerData StoreWeaponItem::run(PlayerData playerData)
 {
-	if (canPlayerAfford(&playerData) == true)
+	if (playerData.hasWeapon(linkedWeapon.getName()) == true)
+	{
+		playerData.setActiveWeapon(linkedWeapon.getName());
+		return playerData;
+	}
+	else if (canPlayerAfford(&playerData) == true)
 	{
 		playerData.addWeapon(linkedWeapon);
 		purchaseSuccessful = true;
 		playerData.decrementCredits(cost);
+		return playerData;
 	}
 	return playerData;
 }
