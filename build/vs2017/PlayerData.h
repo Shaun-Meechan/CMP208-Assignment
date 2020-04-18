@@ -11,24 +11,23 @@ public:
 	void decrementHealth(float time, int value);
 	Weapon getActiveWeapon();
 	void addWeapon(Weapon newWeapon);
-	//void setActiveWeapon(int ID);
 	void setActiveWeapon(char* name);
 	void removeMostRecentWeapon();
 	void addHealth(int value);
 	void addRiflemen(int value);
-	int getRiflemen();
+	unsigned short int getRiflemen();
 	void addRepairGuys(int value);
-	int getReapirGuys();
+	unsigned short int getReapirGuys();
 	void setLastDamageTime(float value);
-	int getWeaponsSize();
+	unsigned int getWeaponsSize();
 	bool hasWeapon(char* weaponName);
 private:
-	int credits = 250;
+	int credits = 300;
 	std::vector<Weapon> weapons;
 	Weapon activeWeapon;
 	int health = 100;
 	float lastDamageTime = 0.0f;
-	unsigned int riflemen = 0;
-	unsigned int repairGuys = 0;
+	unsigned short int riflemen = 0;
+	unsigned short int repairGuys = 0;
 };
 

@@ -123,7 +123,6 @@ private:
 	gef::Scene* wallSceneAsset;
 	Weapon handgun;
 	Weapon activeWeapon;
-	bool testRender;
 	float gameTime;
 	PlayerData playerData;
 	//Used for 2D -> 3D projection
@@ -140,7 +139,6 @@ private:
 	std::vector<StoreWeaponItem*> storeWeapons;
 	int purchaseSfx = 0;
 	int purchasefailSFX = 0;
-	bool testState = false;
 	// Global Functions
 	void updateStateMachine(int newID, int oldID);
 };

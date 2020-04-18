@@ -43,9 +43,6 @@ void SceneApp::Init()
 
 	FrontendInit();
 
-	//Debug bool for testing render functions
-	testRender = false;
-
 	//Seed a new seed for the random number generator
 	srand(time(NULL));
 }
@@ -469,6 +466,11 @@ void SceneApp::GameRelease()
 	delete gameBackgroundSprite;
 	gameBackgroundSprite = NULL;
 
+	for (unsigned int i = 0; i < enemies.size(); i++)
+	{
+		delete enemies[i];
+	}
+
 	enemies.clear();
 	enemies.shrink_to_fit();
 
@@ -689,25 +691,39 @@ void SceneApp::StoreInit()
 	assualtRifle.create("assault_rifle_icon_1.png", &platform_, 200, 20, 25, 3.0f, "AssaultRifle", "AssaultRifleSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("assault_rifle_icon_1.png", &platform_, 200, world_, b2Vec2(4, 5), assualtRifle));
 	storeWeapons[1]->set_position(gef::Vector4(platform_.width() * 0.7f, platform_.height() * 0.1, 0));
+	//Shotgun
+	Weapon shotgun = Weapon();
+	shotgun.create("shotgun_icon_2.png", &platform_, 300, 50, 2, 1.5f, "shotgun", "shotgunSfx.wav");
+	storeWeapons.push_back(new StoreWeaponItem("shotgun_icon_2.png", &platform_, 300, world_, b2Vec2(0, 2.25), shotgun));
+	storeWeapons[2]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.3, 0));
 }
 
 void SceneApp::StoreRelease()
 {
-	for (int i = 0; i < storeItem.size(); i++)
+	for (unsigned int i = 0; i < storeItem.size(); i++)
 	{
 		delete storeItem[i];
 	}
 
+	for (unsigned int i = 0; i < storeWeapons.size(); i++)
+	{
+		delete storeWeapons[i];
+	}
+
 	storeItem.clear();
+	storeItem.shrink_to_fit();
 
 	storeWeapons.clear();
+	storeWeapons.shrink_to_fit();
 
 	audioManager->StopMusic();
 	audioManager->StopPlayingSampleVoice(purchaseSfx);
 	audioManager->StopPlayingSampleVoice(purchasefailSFX);
 	audioManager->UnloadMusic();
 	audioManager->UnloadAllSamples();
+
 	purchaseSfx = NULL;
+	purchasefailSFX = NULL;
 
 	delete renderer_3d_;
 	renderer_3d_ = NULL;
@@ -720,7 +736,6 @@ void SceneApp::StoreUpdate(float frame_time)
 {
 	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
 
-	testState = true;
 	ProcessTouchInput();
 }
 

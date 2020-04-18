@@ -75,20 +75,6 @@ void PlayerData::addWeapon(Weapon newWeapon)
 	return;
 }
 
-//void PlayerData::setActiveWeapon(int ID)
-//{
-//	if (weapons[ID] == NULL)
-//	{
-//		gef::DebugOut("ERROR: No weapon for the ID exists!");
-//		return;
-//	}
-//	else
-//	{
-//		activeWeapon = *weapons[ID];
-//		return;
-//	}
-//}
-
 void PlayerData::setActiveWeapon(char* name)
 {
 	for (unsigned int i = 0; i < weapons.size(); i++)
@@ -124,7 +110,7 @@ void PlayerData::addRiflemen(int value)
 	riflemen = riflemen + value;
 }
 
-int PlayerData::getRiflemen()
+unsigned short int PlayerData::getRiflemen()
 {
 	return riflemen;
 }
@@ -134,7 +120,7 @@ void PlayerData::addRepairGuys(int value)
 	repairGuys = repairGuys + value;
 }
 
-int PlayerData::getReapirGuys()
+unsigned short int PlayerData::getReapirGuys()
 {
 	return repairGuys;
 }
@@ -144,7 +130,7 @@ void PlayerData::setLastDamageTime(float value)
 	lastDamageTime = value;
 }
 
-int PlayerData::getWeaponsSize()
+unsigned int PlayerData::getWeaponsSize()
 {
 	return weapons.size();
 }
