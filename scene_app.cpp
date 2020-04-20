@@ -17,7 +17,6 @@ SceneApp::SceneApp(gef::Platform& platform) :
 	Application(platform),
 	sprite_renderer_(NULL),
 	renderer_3d_(NULL),
-	primitive_builder_(NULL),
 	input_manager_(NULL),
 	font_(NULL),
 	world_(NULL),
@@ -59,6 +58,7 @@ void SceneApp::CleanUp()
 
 	audioManager->UnloadAllSamples();
 	audioManager->UnloadMusic();
+
 	delete audioManager;
 	audioManager = NULL;
 }
@@ -365,9 +365,9 @@ void SceneApp::GameInit(int enemiesToMake)
 		handgun = Weapon();
 		handgun.create("handgun.png", &platform_, 100, 30, 10, 2.5f, "Handgun","handgunSfx.wav");
 		playerData.addWeapon(handgun);
-		//playerData.setActiveWeapon(0);
 		playerData.setActiveWeapon("Handgun");
 		firstRun = false;
+		handgun.~Weapon();
 	}
 
 	sceneAssetFilename = "NewHouse.scn";
@@ -394,9 +394,6 @@ void SceneApp::GameInit(int enemiesToMake)
 
 	// create the renderer for draw 3D geometry
 	renderer_3d_ = gef::Renderer3D::Create(platform_);
-
-	// initialise primitive builder to make create some 3D geometry easier
-	primitive_builder_ = new PrimitiveBuilder(platform_);
 
 	//Load our audio samples
 	gunShotSampleID = audioManager->LoadSample(playerData.getActiveWeapon().getSfxPath(), platform_);
@@ -442,9 +439,6 @@ void SceneApp::GameRelease()
 	delete world_;
 	world_ = NULL;
 
-	delete primitive_builder_;
-	primitive_builder_ = NULL;
-
 	delete renderer_3d_;
 	renderer_3d_ = NULL;
 
@@ -466,18 +460,17 @@ void SceneApp::GameRelease()
 	delete gameBackgroundSprite;
 	gameBackgroundSprite = NULL;
 
+	//We really shouldn't need to run this code or the claer. This is just a failsafe in case the user somehow finishes the level without killing all enemies.
 	for (unsigned int i = 0; i < enemies.size(); i++)
 	{
 		delete enemies[i];
 	}
-
 	enemies.clear();
+
+
 	enemies.shrink_to_fit();
 
 	gameTime = 0;
-
-	delete gameBackgroundSprite;
-	gameBackgroundSprite = NULL;
 
 	//Audio unload
 	audioManager->StopMusic();
@@ -686,16 +679,19 @@ void SceneApp::StoreInit()
 	sniper.create("sniper_icon_2.png", &platform_, 250, 40, 1, 1.0f, "Sniper","sniperSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("sniper_icon_2.png", &platform_, 250, world_, b2Vec2(0, 5),sniper));
 	storeWeapons[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1, 0));
+	sniper.~Weapon();
 	//Assault rifle
 	Weapon assualtRifle = Weapon();
 	assualtRifle.create("assault_rifle_icon_1.png", &platform_, 200, 20, 25, 3.0f, "AssaultRifle", "AssaultRifleSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("assault_rifle_icon_1.png", &platform_, 200, world_, b2Vec2(4, 5), assualtRifle));
 	storeWeapons[1]->set_position(gef::Vector4(platform_.width() * 0.7f, platform_.height() * 0.1, 0));
+	assualtRifle.~Weapon();
 	//Shotgun
 	Weapon shotgun = Weapon();
 	shotgun.create("shotgun_icon_2.png", &platform_, 300, 50, 2, 1.5f, "shotgun", "shotgunSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("shotgun_icon_2.png", &platform_, 300, world_, b2Vec2(0, 2.25), shotgun));
 	storeWeapons[2]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.3, 0));
+	shotgun.~Weapon();
 }
 
 void SceneApp::StoreRelease()

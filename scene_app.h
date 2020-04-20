@@ -3,7 +3,6 @@
 
 #include <system/application.h>
 #include <maths/vector2.h>
-#include "primitive_builder.h"
 #include <graphics/mesh_instance.h>
 #include <input/input_manager.h>
 #include <box2d/Box2D.h>
@@ -64,17 +63,12 @@ private:
 	// GAME DECLARATIONS
 	//
 	gef::Renderer3D* renderer_3d_;
-	PrimitiveBuilder* primitive_builder_;
 
 	//Game State declarations
 	enum GAMESTATE{INIT, Level1, Store, Fail, Win};
 	GAMESTATE gameState = INIT;
 	// create the physics world
 	b2World* world_;
-
-	// audio variables
-	int sfx_id_;
-	int sfx_voice_id_;
 
 	float fps_;
 
@@ -105,16 +99,16 @@ private:
 
 
 	//Game Variables
-	unsigned int roundCounter = 1;
+	unsigned short int roundCounter = 1;
 	float lastRfilemenAttackTime = 0.0f;
 	float lastRepairTime = 0.0f;
 	gef::Texture* gameBackgroundSprite;
 	bool firstRun = true;
 	gef::Vector2 touchPosition;
 	Int32 activeTouchID = 0;
-	int gunShotSampleID = 0;
-	int backgroundSFXID = 0;
-	int reloadSfx = 0;
+	unsigned short int gunShotSampleID = 0;
+	unsigned short int backgroundSFXID = 0;
+	unsigned short int reloadSfx = 0;
 	std::vector <EnemyObject*> enemies;
 	PlayerObject* Player;
 	WallObject* wallObject;
@@ -137,8 +131,8 @@ private:
 	//Store Variables
 	std::vector<StoreItem*> storeItem;
 	std::vector<StoreWeaponItem*> storeWeapons;
-	int purchaseSfx = 0;
-	int purchasefailSFX = 0;
+	unsigned short int purchaseSfx = 0;
+	unsigned short int purchasefailSFX = 0;
 	// Global Functions
 	void updateStateMachine(int newID, int oldID);
 };

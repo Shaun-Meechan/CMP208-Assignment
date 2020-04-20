@@ -15,6 +15,7 @@ class Weapon: public gef::Sprite
 {
 public:
 	Weapon();
+	~Weapon();
 	gef::Texture* getIcon();
 	int getCost();
 	int getDamage();

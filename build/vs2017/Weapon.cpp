@@ -9,6 +9,12 @@ Weapon::Weapon()
 	name = "";
 }
 
+Weapon::~Weapon()
+{
+	//delete icon;
+	icon = NULL;
+}
+
 gef::Texture* Weapon::getIcon()
 {
 	return icon;
