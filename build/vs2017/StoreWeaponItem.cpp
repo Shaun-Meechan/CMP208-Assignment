@@ -71,6 +71,11 @@ char* StoreWeaponItem::getName()
 	return name;
 }
 
+gef::Texture* StoreWeaponItem::getIcon()
+{
+	return icon;
+}
+
 bool StoreWeaponItem::canPlayerAfford(PlayerData* playerData)
 {
 	if ((playerData->getCredits() - cost) < 0)
