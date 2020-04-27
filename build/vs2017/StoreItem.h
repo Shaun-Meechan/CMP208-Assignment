@@ -28,6 +28,7 @@ public:
 	b2Body* getBody();
 	bool didPurchaseSucced();
 	char* getName();
+	gef::Texture* getIcon();
 private:
 	gef::Texture* icon;
 	int cost = 0;
