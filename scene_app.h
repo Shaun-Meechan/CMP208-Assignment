@@ -97,9 +97,6 @@ private:
 	void WinUpdate(float frame_time);
 	void WinRender();
 
-	//Global variables
-	bool playAudio = true;
-	bool audioStatusChanged = false;
 
 	//Game Variables
 	unsigned short int roundCounter = 1;
@@ -118,6 +115,7 @@ private:
 	gef::Scene* enemySceneAsset;
 	gef::Scene* playerSceneAsset;
 	gef::Scene* wallSceneAsset;
+	Weapon handgun;
 	Weapon activeWeapon;
 	float gameTime;
 	PlayerData playerData;

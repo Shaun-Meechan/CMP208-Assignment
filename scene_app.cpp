@@ -65,8 +65,6 @@ void SceneApp::CleanUp()
 
 bool SceneApp::Update(float frame_time)
 {
-	audioStatusChanged = false;
-
 	fps_ = 1.0f / frame_time;
 
 	input_manager_->Update();
@@ -95,23 +93,6 @@ bool SceneApp::Update(float frame_time)
 			default:
 				break;
 			}
-		}
-
-		if (keyboard->IsKeyPressed(gef::Keyboard::KC_M))
-		{
-			switch (playAudio)
-			{
-			case true:
-				playAudio = false;
-				audioManager->StopMusic();
-				break;
-			case false:
-				playAudio = true;
-				break;
-			default:
-				break;
-			}
-			audioStatusChanged = true;
 		}
 	}
 
@@ -303,20 +284,14 @@ void SceneApp::FrontendInit()
 	button_icon_ = CreateTextureFromPNG("playbuttonWhite.png", platform_);
 	backgroundSprite = CreateTextureFromPNG("mainMenuBackground.png", platform_);
 	audioManager->LoadMusic("MainMenuMusic.wav", platform_);
-
-	if (playAudio == true)
-	{
-		audioManager->PlayMusic();
-	}
+	audioManager->PlayMusic();
 }
 
 void SceneApp::FrontendRelease()
 {
-	button_icon_->~Texture();
 	delete button_icon_;
 	button_icon_ = NULL;
 
-	backgroundSprite->~Texture();
 	delete backgroundSprite;
 	backgroundSprite = NULL;
 
@@ -327,14 +302,6 @@ void SceneApp::FrontendRelease()
 void SceneApp::FrontendUpdate(float frame_time)
 {
 	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
-
-	if (audioStatusChanged == true)
-	{
-		if (playAudio == true)
-		{
-			audioManager->PlayMusic();
-		}
-	}
 }
 
 void SceneApp::FrontendRender()
@@ -357,15 +324,6 @@ void SceneApp::FrontendRender()
 		0xffffffff,
 		gef::TJ_CENTRE,
 		"Save The Home!");
-
-	//Render audio text
-	font_->RenderText(
-		sprite_renderer_,
-		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f + 240.f, 0.f),
-		1.0f,
-		0xffffffff,
-		gef::TJ_CENTRE,
-		"Press 'm' at any time to mute/unmute audio.");
 
 	// Render button icon
 	gef::Sprite button;
@@ -404,11 +362,12 @@ void SceneApp::GameInit(int enemiesToMake)
 	//Create the first weapons if it's not been made yet.
 	if (firstRun == true)
 	{
-		Weapon handgun = Weapon();
+		handgun = Weapon();
 		handgun.create("handgun.png", &platform_, 100, 30, 10, 2.5f, "Handgun","handgunSfx.wav");
 		playerData.addWeapon(handgun);
 		playerData.setActiveWeapon("Handgun");
 		firstRun = false;
+		handgun.~Weapon();
 	}
 
 	sceneAssetFilename = "NewHouse.scn";
@@ -438,14 +397,11 @@ void SceneApp::GameInit(int enemiesToMake)
 
 	//Load our audio samples
 	gunShotSampleID = audioManager->LoadSample(playerData.getActiveWeapon().getSfxPath(), platform_);
-	backgroundSFXID = audioManager->LoadMusic("gamebackgroundsfx.wav", platform_);
+	backgroundSFXID = audioManager->LoadSample("gamebackgroundsfx.wav", platform_);
 	reloadSfx = audioManager->LoadSample("ReloadSfx.wav", platform_);
 
 	//start our background sfx
-	if (playAudio == true)
-	{
-		audioManager->PlayMusic();
-	}
+	audioManager->PlaySample(backgroundSFXID, true);
 
 	SetupLights();
 
@@ -501,7 +457,6 @@ void SceneApp::GameRelease()
 	delete wallObject;
 	wallObject = NULL;
 
-	gameBackgroundSprite->~Texture();
 	delete gameBackgroundSprite;
 	gameBackgroundSprite = NULL;
 
@@ -596,14 +551,6 @@ void SceneApp::GameUpdate(float frame_time)
 	{
 		updateStateMachine(3, 1);
 		return;
-	}
-
-	if (audioStatusChanged == true)
-	{
-		if (playAudio == true)
-		{
-			audioManager->PlayMusic();
-		}
 	}
 }
 
@@ -712,10 +659,7 @@ void SceneApp::StoreInit()
 	purchasefailSFX = audioManager->LoadSample("purchasefail.wav", platform_);
 
 	audioManager->LoadMusic("StoreMusic.wav", platform_);
-	if (playAudio == true)
-	{
-		audioManager->PlayMusic();
-	}
+	audioManager->PlayMusic();
 
 	//Healthpack
 	storeItem.push_back(new StoreItem("healthpackicon.png", &platform_, 50, "Health", world_, b2Vec2(-9,5)));
@@ -735,32 +679,30 @@ void SceneApp::StoreInit()
 	sniper.create("sniper_icon_2.png", &platform_, 250, 40, 1, 1.0f, "Sniper","sniperSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("sniper_icon_2.png", &platform_, 250, world_, b2Vec2(0, 5),sniper));
 	storeWeapons[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1, 0));
-	sniper.getIcon()->~Texture();
+	sniper.~Weapon();
 	//Assault rifle
 	Weapon assualtRifle = Weapon();
 	assualtRifle.create("assault_rifle_icon_1.png", &platform_, 200, 20, 25, 3.0f, "AssaultRifle", "AssaultRifleSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("assault_rifle_icon_1.png", &platform_, 200, world_, b2Vec2(4, 5), assualtRifle));
 	storeWeapons[1]->set_position(gef::Vector4(platform_.width() * 0.7f, platform_.height() * 0.1, 0));
-	assualtRifle.getIcon()->~Texture();
+	assualtRifle.~Weapon();
 	//Shotgun
 	Weapon shotgun = Weapon();
 	shotgun.create("shotgun_icon_2.png", &platform_, 300, 50, 2, 1.5f, "shotgun", "shotgunSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("shotgun_icon_2.png", &platform_, 300, world_, b2Vec2(0, 2.25), shotgun));
 	storeWeapons[2]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.3, 0));
-	shotgun.getIcon()->~Texture();
+	shotgun.~Weapon();
 }
 
 void SceneApp::StoreRelease()
 {
 	for (unsigned int i = 0; i < storeItem.size(); i++)
 	{
-		storeItem[i]->getIcon()->~Texture();
 		delete storeItem[i];
 	}
 
 	for (unsigned int i = 0; i < storeWeapons.size(); i++)
 	{
-		storeWeapons[i]->getIcon()->~Texture();
 		delete storeWeapons[i];
 	}
 
@@ -791,14 +733,6 @@ void SceneApp::StoreUpdate(float frame_time)
 	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
 
 	ProcessTouchInput();
-
-	if (audioStatusChanged == true)
-	{
-		if (playAudio == true)
-		{
-			audioManager->PlayMusic();
-		}
-	}
 }
 
 void SceneApp::StoreRender()
@@ -1032,10 +966,7 @@ void SceneApp::ProcessTouchInput()
 						if (activeWeapon.getAmmo() <= 0)
 						{
 							activeWeapon.setRanOutOfAmmoTime(gameTime);
-							if (playAudio == true)
-							{
-								audioManager->PlaySample(reloadSfx, false);
-							}
+							audioManager->PlaySample(reloadSfx, false);
 						}
 						//Here we need to loop through all the enemy bodies and see if the player hits them.
 						for (int i = 0; i < enemies.size(); i++)
@@ -1056,10 +987,7 @@ void SceneApp::ProcessTouchInput()
 								}
 							}
 						}
-						if (playAudio == true)
-						{
-							audioManager->PlaySample(gunShotSampleID, false);
-						}
+						audioManager->PlaySample(gunShotSampleID, false);
 						break;
 					case SceneApp::Store:
 						//Here we need to loop through all the store items and see if the player interacts with them.
@@ -1077,17 +1005,11 @@ void SceneApp::ProcessTouchInput()
 									playerData = storeItem[i]->run(playerData); //Lower this by the damage of the current weapon
 									if (storeItem[i]->didPurchaseSucced() == true)
 									{
-										if (playAudio == true)
-										{
-											audioManager->PlaySample(purchaseSfx,false);
-										}
+										audioManager->PlaySample(purchaseSfx,false);
 									}
 									else
 									{
-										if (playAudio == true)
-										{
-											audioManager->PlaySample(purchasefailSFX, false);
-										}
+										audioManager->PlaySample(purchasefailSFX, false);
 									}
 								}
 							}
@@ -1107,17 +1029,11 @@ void SceneApp::ProcessTouchInput()
 									playerData = storeWeapons[i]->run(playerData); //Lower this by the damage of the current weapon
 									if (storeWeapons[i]->didPurchaseSucced() == true)
 									{
-										if (playAudio == true)
-										{
-											audioManager->PlaySample(purchaseSfx, false);
-										}
+										audioManager->PlaySample(purchaseSfx, false);
 									}
 									else
 									{
-										if (playAudio == true)
-										{
-											audioManager->PlaySample(purchasefailSFX, false);
-										}
+										audioManager->PlaySample(purchasefailSFX, false);
 									}
 								}
 							}

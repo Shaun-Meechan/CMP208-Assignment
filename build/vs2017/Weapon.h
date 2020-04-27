@@ -31,12 +31,12 @@ public:
 	char* getSfxPath();
 private:
 	gef::Texture* icon = NULL;
-	unsigned short int cost = 0;
-	unsigned short int damage = 0;
-	unsigned short int ammo = 0;
+	unsigned int cost = 0;
+	unsigned int damage = 0;
+	unsigned int ammo = 0;
 	float reloadTime = 0.0f;
 	float ranOutOfAmmoTime = 0.0f;
-	unsigned short int maxAmmo = 0;
+	int maxAmmo = 0;
 	char* name;
 	char* sfxPath;
 };

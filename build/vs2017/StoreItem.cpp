@@ -126,11 +126,6 @@ char* StoreItem::getName()
 	return name;
 }
 
-gef::Texture* StoreItem::getIcon()
-{
-	return icon;
-}
-
 bool StoreItem::canPlayerAfford(PlayerData* playerData)
 {
 	if ((playerData->getCredits() - cost) < 0)
