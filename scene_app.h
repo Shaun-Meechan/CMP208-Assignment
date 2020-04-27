@@ -133,6 +133,9 @@ private:
 	//Store Variables
 	std::vector<StoreItem*> storeItem;
 	std::vector<StoreWeaponItem*> storeWeapons;
+	Weapon sniper = Weapon();
+	Weapon assualtRifle = Weapon();
+	Weapon shotgun = Weapon();
 	unsigned short int purchaseSfx = 0;
 	unsigned short int purchasefailSFX = 0;
 	gef::Texture* selectedWeaponTexture;

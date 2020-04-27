@@ -47,7 +47,10 @@ char* Weapon::getName()
 
 void Weapon::create(const char* pngFileName, gef::Platform* platform, int newCost, int newDamage, int newMaxAmmo, float newReloadTime, char* newName, char* newSfxPath)
 {
-	icon = CreateTextureFromPNG(pngFileName, *platform);
+	if (icon == NULL)
+	{
+		icon = CreateTextureFromPNG(pngFileName, *platform);
+	}
 
 	cost = newCost;
 	damage = newDamage;

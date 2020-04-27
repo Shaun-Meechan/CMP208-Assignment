@@ -22,7 +22,7 @@ public:
 	unsigned int getWeaponsSize();
 	bool hasWeapon(char* weaponName);
 private:
-	int credits = 300;
+	int credits = 1300;
 	std::vector<Weapon> weapons;
 	Weapon activeWeapon;
 	int health = 100;

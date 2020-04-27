@@ -731,23 +731,17 @@ void SceneApp::StoreInit()
 
 	//Weapons
 	//Sniper
-	Weapon sniper = Weapon();
 	sniper.create("sniper_icon_2.png", &platform_, 250, 40, 1, 1.0f, "Sniper","sniperSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("sniper_icon_2.png", &platform_, 250, world_, b2Vec2(0, 5),sniper));
 	storeWeapons[0]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1, 0));
-	sniper.getIcon()->~Texture();
 	//Assault rifle
-	Weapon assualtRifle = Weapon();
 	assualtRifle.create("assault_rifle_icon_1.png", &platform_, 200, 20, 25, 3.0f, "AssaultRifle", "AssaultRifleSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("assault_rifle_icon_1.png", &platform_, 200, world_, b2Vec2(4, 5), assualtRifle));
 	storeWeapons[1]->set_position(gef::Vector4(platform_.width() * 0.7f, platform_.height() * 0.1, 0));
-	assualtRifle.getIcon()->~Texture();
 	//Shotgun
-	Weapon shotgun = Weapon();
 	shotgun.create("shotgun_icon_2.png", &platform_, 300, 50, 2, 1.5f, "shotgun", "shotgunSfx.wav");
 	storeWeapons.push_back(new StoreWeaponItem("shotgun_icon_2.png", &platform_, 300, world_, b2Vec2(0, 2.25), shotgun));
 	storeWeapons[2]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.3, 0));
-	shotgun.getIcon()->~Texture();
 
 	selectedWeaponTexture = CreateTextureFromPNG("SelectedWeaponSprite.png", platform_);
 }
@@ -765,6 +759,10 @@ void SceneApp::StoreRelease()
 		storeWeapons[i]->getIcon()->~Texture();
 		delete storeWeapons[i];
 	}
+
+	/*sniper.getIcon()->~Texture();
+	assualtRifle.getIcon()->~Texture();
+	shotgun.getIcon()->~Texture();*/
 
 	selectedWeaponTexture->~Texture();
 
@@ -868,7 +866,7 @@ void SceneApp::StoreRender()
 		{
 			selectedWeaponSprite.set_position(gef::Vector4(storeWeapons[0]->position().x(), storeWeapons[0]->position().y(), 0.0f));
 		}
-		else if (playerData.getActiveWeapon().getName() == "AssaultRife")
+		else if (playerData.getActiveWeapon().getName() == "AssaultRifle")
 		{
 			selectedWeaponSprite.set_position(gef::Vector4(storeWeapons[1]->position().x(), storeWeapons[1]->position().y(), 0.0f));
 		}
