@@ -135,7 +135,6 @@ private:
 	std::vector<StoreWeaponItem*> storeWeapons;
 	unsigned short int purchaseSfx = 0;
 	unsigned short int purchasefailSFX = 0;
-	gef::Texture* selectedWeaponTexture;
 	// Global Functions
 	void updateStateMachine(int newID, int oldID);
 };

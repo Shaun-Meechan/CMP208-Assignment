@@ -748,8 +748,6 @@ void SceneApp::StoreInit()
 	storeWeapons.push_back(new StoreWeaponItem("shotgun_icon_2.png", &platform_, 300, world_, b2Vec2(0, 2.25), shotgun));
 	storeWeapons[2]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.3, 0));
 	shotgun.getIcon()->~Texture();
-
-	selectedWeaponTexture = CreateTextureFromPNG("SelectedWeaponSprite.png", platform_);
 }
 
 void SceneApp::StoreRelease()
@@ -765,8 +763,6 @@ void SceneApp::StoreRelease()
 		storeWeapons[i]->getIcon()->~Texture();
 		delete storeWeapons[i];
 	}
-
-	selectedWeaponTexture->~Texture();
 
 	storeItem.clear();
 	storeItem.shrink_to_fit();
@@ -823,7 +819,7 @@ void SceneApp::StoreRender()
 	renderer_3d_->set_view_matrix(view_matrix);
 
 	sprite_renderer_->Begin();
-
+	
 	for (int i = 0; i < storeItem.size(); i++)
 	{
 		sprite_renderer_->DrawSprite(*storeItem[i]);
@@ -857,32 +853,6 @@ void SceneApp::StoreRender()
 			0xffffffff,
 			gef::TJ_CENTRE,
 			"%i", storeWeapons[i]->getCost());
-	}
-
-	//Draw our weapon selector icon
-	if (playerData.getActiveWeapon().getName() != "Handgun")
-	{
-		gef::Sprite selectedWeaponSprite;
-		selectedWeaponSprite.set_texture(selectedWeaponTexture);
-		if (playerData.getActiveWeapon().getName() == "Sniper")
-		{
-			selectedWeaponSprite.set_position(gef::Vector4(storeWeapons[0]->position().x(), storeWeapons[0]->position().y(), 0.0f));
-		}
-		else if (playerData.getActiveWeapon().getName() == "AssaultRife")
-		{
-			selectedWeaponSprite.set_position(gef::Vector4(storeWeapons[1]->position().x(), storeWeapons[1]->position().y(), 0.0f));
-		}
-		else if (playerData.getActiveWeapon().getName() == "shotgun")
-		{
-			selectedWeaponSprite.set_position(gef::Vector4(storeWeapons[2]->position().x(), storeWeapons[2]->position().y(), 0.0f));
-		}
-		else
-		{
-			gef::DebugOut("ERROR: Unable to get player active weapon and set selected weapon sprite position!\n");
-		}
-		selectedWeaponSprite.set_height(64.0f);
-		selectedWeaponSprite.set_width(64.0f);
-		sprite_renderer_->DrawSprite(selectedWeaponSprite);
 	}
 
 	font_->RenderText(
