@@ -92,4 +92,3 @@ char* Weapon::getSfxPath()
 {
 	return sfxPath;
 }
-
