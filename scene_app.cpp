@@ -237,7 +237,8 @@ void SceneApp::UpdateSimulation(float frame_time)
 
 			// DO COLLISION RESPONSE HERE
 			PlayerObject* player = NULL;
-			Enemy* enemy = NULL;
+			//Enemy* enemy = NULL;
+			EnemyObject* enemy = NULL;
 			GameObject* gameObjectA = NULL;
 			GameObject* gameObjectB = NULL;
 
@@ -252,7 +253,7 @@ void SceneApp::UpdateSimulation(float frame_time)
 				}
 				else if (gameObjectA->type() == ENEMY)
 				{
-					enemy = (Enemy*)bodyA->GetUserData();
+					enemy = (EnemyObject*)bodyA->GetUserData();
 				}
 			}
 
@@ -264,14 +265,12 @@ void SceneApp::UpdateSimulation(float frame_time)
 				}
 				else if (gameObjectB->type() == ENEMY)
 				{
-					enemy = (Enemy*)bodyB->GetUserData();
+					enemy = (EnemyObject*)bodyB->GetUserData();
 				}
 			}
 
 			if (player && enemy)
 			{
-				gef::DebugOut("Player and enemy collision!\n");
-
 				playerData.decrementHealth(gameTime,1);
 
 				if (gameObjectA->type() == ENEMY)
@@ -282,15 +281,28 @@ void SceneApp::UpdateSimulation(float frame_time)
 				{
 					bodyB->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 				}
+				enemy->setCollidingWithPlayer(true);
 			}
 
 			if (enemy)
 			{
+				if (enemy->getStoppedMoving() == true )
+				{
+					if (gameObjectA->type() == ENEMY)
+					{
+						bodyA->ApplyForceToCenter(b2Vec2(5, 0), true);
+					}
+					if (gameObjectB->type() == ENEMY)
+					{
+						bodyB->ApplyForceToCenter(b2Vec2(5, 0),true);
+					}
+					enemy->setStoppedMoving(false);
+				}
 				if (gameObjectA->type() == ENEMY && gameObjectB->type() == ENEMY)
 				{
-					gef::DebugOut("Two enemies have collided!\n");
 					bodyA->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 					bodyB->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+					enemy->setStoppedMoving(true);
 				}
 			}
 		}

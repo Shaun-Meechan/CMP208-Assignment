@@ -30,11 +30,20 @@ public:
 	void update();
 	void setHit(bool value);
 	bool getHit();
+	void setStoppedMoving(bool value);
+	bool getStoppedMoving();
+	void setCollidingWithEnemy(bool value);
+	bool getCollidingWithEnemy();
+	void setCollidingWithPlayer(bool value);
+	bool getCollidingWithPlayer();
 private:
 	b2Body* body;
 	b2BodyDef bodyDef;
 	b2PolygonShape shape;
 	b2FixtureDef fixtureDef;
+	bool stoppedMoving = false;
+	bool collidingWithEnemy = false;
+	bool collidingWithPlayer = false;
 	bool hit = false;
 	b2Vec2* spawnPoints[5];
 	int health;
