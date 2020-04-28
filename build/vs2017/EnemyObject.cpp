@@ -135,3 +135,33 @@ bool EnemyObject::getHit()
 {
 	return hit;
 }
+
+void EnemyObject::setStoppedMoving(bool value)
+{
+	stoppedMoving = value;
+}
+
+bool EnemyObject::getStoppedMoving()
+{
+	return stoppedMoving;
+}
+
+void EnemyObject::setCollidingWithEnemy(bool value)
+{
+	collidingWithEnemy = value;
+}
+
+bool EnemyObject::getCollidingWithEnemy()
+{
+	return collidingWithEnemy;
+}
+
+void EnemyObject::setCollidingWithPlayer(bool value)
+{
+	collidingWithPlayer = value;
+}
+
+bool EnemyObject::getCollidingWithPlayer()
+{
+	return collidingWithPlayer;
+}
