@@ -28,12 +28,14 @@ public:
 	void updateRotationZ(float degrees);
 	void translate(gef::Vector4 translationVector);
 	void update();
+	void setHit(bool value);
+	bool getHit();
 private:
 	b2Body* body;
 	b2BodyDef bodyDef;
 	b2PolygonShape shape;
 	b2FixtureDef fixtureDef;
-	//gef::MeshInstance enemyMesh;
+	bool hit = false;
 	b2Vec2* spawnPoints[5];
 	int health;
 	gef::Vector4 objectTranslation;

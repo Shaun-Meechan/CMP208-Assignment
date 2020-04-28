@@ -25,7 +25,8 @@ SceneApp::SceneApp(gef::Platform& platform) :
 	audioManager(NULL),
 	activeTouchID(-1),
 	enemySceneAsset(NULL),
-	playerSceneAsset(NULL)
+	playerSceneAsset(NULL),
+	PB(NULL)
 {
 }
 
@@ -386,6 +387,9 @@ void SceneApp::GameInit(int enemiesToMake)
 	b2Vec2 gravity(0.0f,0.0f);
 	world_ = new b2World(gravity);
 
+	//Initialise primitive builder
+	PB = new PrimitiveBuilder(platform_);
+
 	//Initalize our time variable
 	gameTime = 0;
 
@@ -501,6 +505,9 @@ void SceneApp::GameRelease()
 	delete wallObject;
 	wallObject = NULL;
 
+	delete PB;
+	PB = NULL;
+
 	gameBackgroundSprite->~Texture();
 	delete gameBackgroundSprite;
 	gameBackgroundSprite = NULL;
@@ -558,7 +565,10 @@ void SceneApp::GameUpdate(float frame_time)
 			if (i < enemies.size())
 			{
 				enemies[i]->decrementHealth(5);
-				audioManager->PlaySample(gunShotSampleID);
+				if (playAudio == true)
+				{
+					audioManager->PlaySample(gunShotSampleID);
+				}
 			}
 		}
 		lastRfilemenAttackTime = gameTime;
@@ -635,7 +645,17 @@ void SceneApp::GameRender()
 	//Draw enemy
 	for (int i = 0; i < enemies.size(); i++)
 	{
-		enemies[i]->render(renderer_3d_);
+		if (enemies[i]->getHit() == true)
+		{
+			renderer_3d_->set_override_material(&PB->red_material());
+			enemies[i]->render(renderer_3d_);
+			renderer_3d_->set_override_material(NULL);
+			enemies[i]->setHit(false);
+		}
+		else
+		{
+			enemies[i]->render(renderer_3d_);
+		}
 	}
 
 	wallObject->render(renderer_3d_);
@@ -1081,6 +1101,7 @@ void SceneApp::ProcessTouchInput()
 								{
 									//Player touched an enemy do something
 									enemies[i]->decrementHealth(activeWeapon.getDamage()); //Lower this by the damage of the current weapon
+									enemies[i]->setHit(true);
 								}
 							}
 						}

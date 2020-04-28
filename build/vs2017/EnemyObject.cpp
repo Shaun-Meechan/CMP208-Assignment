@@ -125,3 +125,13 @@ void EnemyObject::update()
 	objectTranslation = gef::Vector4(body->GetPosition().x, body->GetPosition().y, 0);
 	translationMatrix.SetTranslation(objectTranslation);
 }
+
+void EnemyObject::setHit(bool value)
+{
+	hit = value;
+}
+
+bool EnemyObject::getHit()
+{
+	return hit;
+}

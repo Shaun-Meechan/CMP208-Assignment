@@ -20,6 +20,7 @@
 #include "PlayerData.h"
 #include "WallObject.h"
 #include "StoreWeaponItem.h"
+#include "primitive_builder.h"
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
 {
@@ -63,7 +64,7 @@ private:
 	// GAME DECLARATIONS
 	//
 	gef::Renderer3D* renderer_3d_;
-
+	PrimitiveBuilder* PB;
 	//Game State declarations
 	enum GAMESTATE{INIT, Level1, Store, Fail, Win};
 	GAMESTATE gameState = INIT;
