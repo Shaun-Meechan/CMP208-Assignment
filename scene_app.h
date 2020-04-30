@@ -60,14 +60,17 @@ private:
 	//
 	gef::Texture* button_icon_;
 	gef::Texture* backgroundSprite;
+
+	//Splash Declarations
+	gef::Texture* SplashBackground;
 	//
 	// GAME DECLARATIONS
 	//
 	gef::Renderer3D* renderer_3d_;
 	PrimitiveBuilder* PB;
 	//Game State declarations
-	enum GAMESTATE{INIT, Level1, Store, Fail, Win};
-	GAMESTATE gameState = INIT;
+	enum GAMESTATE{INIT, Level1, Store, Fail, Win, Splash};
+	GAMESTATE gameState = Splash;
 	// create the physics world
 	b2World* world_;
 
@@ -97,6 +100,14 @@ private:
 	void WinRelease();
 	void WinUpdate(float frame_time);
 	void WinRender();
+
+	void SplashInit();
+	void SplashRelease();
+	void SplashUpdate(float frame_time);
+	void SplashRender();
+
+	//Splash variables
+	unsigned short int splashSfx = 0;
 
 	//Global variables
 	bool playAudio = true;

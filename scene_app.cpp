@@ -41,7 +41,7 @@ void SceneApp::Init()
 	// Initialise our audio manager
 	audioManager = gef::AudioManager::Create();
 
-	FrontendInit();
+	SplashInit();
 
 	//Seed a new seed for the random number generator
 	srand(time(NULL));
@@ -133,6 +133,9 @@ bool SceneApp::Update(float frame_time)
 	case SceneApp::Win:
 		WinUpdate(frame_time);
 		break;
+	case SceneApp::Splash:
+		SplashUpdate(frame_time);
+		break;
 	default:
 		break;
 	}
@@ -158,6 +161,9 @@ void SceneApp::Render()
 		break;
 	case SceneApp::Win:
 		WinRender();
+		break;
+	case SceneApp::Splash:
+		SplashRender();
 		break;
 	default:
 		break;
@@ -591,7 +597,7 @@ void SceneApp::GameUpdate(float frame_time)
 	{
 		for (int i = 0; i < playerData.getReapirGuys(); i++)
 		{
-			playerData.addHealth(2);
+			playerData.addHealth(1);
 		}
 		lastRepairTime = gameTime;
 	}
@@ -791,10 +797,6 @@ void SceneApp::StoreRelease()
 		storeWeapons[i]->getIcon()->~Texture();
 		delete storeWeapons[i];
 	}
-
-	/*sniper.getIcon()->~Texture();
-	assualtRifle.getIcon()->~Texture();
-	shotgun.getIcon()->~Texture();*/
 
 	selectedWeaponTexture->~Texture();
 
@@ -1005,6 +1007,43 @@ void SceneApp::WinRender()
 	sprite_renderer_->End();
 }
 
+void SceneApp::SplashInit()
+{
+	gameTime = 0;
+	SplashBackground = CreateTextureFromPNG("SplashIcon.png", platform_);
+	splashSfx = audioManager->LoadSample("SplashSfx.wav", platform_);
+	audioManager->PlaySample(splashSfx, false);
+}
+
+void SceneApp::SplashRelease()
+{
+	audioManager->UnloadSample(splashSfx);
+	SplashBackground->~Texture();
+}
+
+void SceneApp::SplashUpdate(float frame_time)
+{
+	gameTime = gameTime + frame_time;
+	if (gameTime > 5)
+	{
+		updateStateMachine(0, 5);
+	}
+}
+
+void SceneApp::SplashRender()
+{
+	sprite_renderer_->Begin();
+	//Render our background 
+	gef::Sprite background;
+	background.set_texture(SplashBackground);
+	background.set_position(gef::Vector4(platform_.width() - 480.f, platform_.height() - 273.f, 0.f));
+	background.set_height(platform_.height());
+	background.set_width(platform_.width());
+	sprite_renderer_->DrawSprite(background);
+
+	sprite_renderer_->End();
+}
+
 //New ID represent where we want to go. Old represent where we came from.
 void SceneApp::updateStateMachine(int newID, int oldID)
 {
@@ -1045,6 +1084,10 @@ void SceneApp::updateStateMachine(int newID, int oldID)
 		GameRelease();
 		WinInit();
 		gameState = Win;
+		break;
+	case 5://Splash
+		SplashInit();
+		gameState = Splash;
 		break;
 	default:
 		break;
