@@ -21,6 +21,7 @@
 #include "WallObject.h"
 #include "StoreWeaponItem.h"
 #include "primitive_builder.h"
+#include "MainMenuButton.h"
 // FRAMEWORK FORWARD DECLARATIONS
 namespace gef
 {
@@ -106,13 +107,16 @@ private:
 	void SplashUpdate(float frame_time);
 	void SplashRender();
 
-	//Splash variables
-	unsigned short int splashSfx = 0;
-
 	//Global variables
 	bool playAudio = true;
 	bool audioStatusChanged = false;
+	unsigned short int roundsToBeat = 10;
 
+	//Splash variables
+	unsigned short int splashSfx = 0;
+
+	//Main Menu Variables
+	std::vector<MainMenuButton*> mainMenuButtons;
 	//Game Variables
 	unsigned short int roundCounter = 1;
 	float lastRfilemenAttackTime = 0.0f;

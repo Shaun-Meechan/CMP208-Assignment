@@ -224,6 +224,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="EnemyObject.cpp" />
+    <ClCompile Include="MainMenuButton.cpp" />
     <ClCompile Include="PlayerData.cpp" />
     <ClCompile Include="PlayerObject.cpp" />
     <ClCompile Include="StoreItem.cpp" />
@@ -237,6 +238,7 @@
     <ClInclude Include="..\..\primitive_builder.h" />
     <ClInclude Include="..\..\scene_app.h" />
     <ClInclude Include="EnemyObject.h" />
+    <ClInclude Include="MainMenuButton.h" />
     <ClInclude Include="PlayerData.h" />
     <ClInclude Include="PlayerObject.h" />
     <ClInclude Include="StoreItem.h" />

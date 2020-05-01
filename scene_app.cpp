@@ -319,6 +319,8 @@ void SceneApp::UpdateSimulation(float frame_time)
 
 void SceneApp::FrontendInit()
 {
+	renderer_3d_ = gef::Renderer3D::Create(platform_);
+
 	button_icon_ = CreateTextureFromPNG("playbuttonWhite.png", platform_);
 	backgroundSprite = CreateTextureFromPNG("mainMenuBackground.png", platform_);
 	audioManager->LoadMusic("MainMenuMusic.wav", platform_);
@@ -327,6 +329,16 @@ void SceneApp::FrontendInit()
 	{
 		audioManager->PlayMusic();
 	}
+
+	//Create our menu button
+	b2Vec2 gravity(0.0f, 0.0f);
+	world_ = new b2World(gravity);
+	
+	mainMenuButtons.push_back(new MainMenuButton("fast-forward-button.png", &platform_, "Increase", world_, b2Vec2(6, 0)));
+	mainMenuButtons[0]->set_position(gef::Vector4(platform_.width() * 0.75f, platform_.height() * 0.5f, 0));
+
+	mainMenuButtons.push_back(new MainMenuButton("fast-backward-button.png", &platform_, "Decrease", world_, b2Vec2(11, 0)));
+	mainMenuButtons[1]->set_position(gef::Vector4(platform_.width() * 0.95f, platform_.height() * 0.5f, 0));
 }
 
 void SceneApp::FrontendRelease()
@@ -339,6 +351,18 @@ void SceneApp::FrontendRelease()
 	delete backgroundSprite;
 	backgroundSprite = NULL;
 
+	mainMenuButtons[0]->getIcon()->~Texture();
+	delete mainMenuButtons[0];
+
+	mainMenuButtons[1]->getIcon()->~Texture();
+	delete mainMenuButtons[1];
+
+	delete world_;
+	world_ = NULL;
+
+	delete renderer_3d_;
+	renderer_3d_ = NULL;
+
 	audioManager->StopMusic();
 	audioManager->UnloadMusic();
 }
@@ -346,6 +370,8 @@ void SceneApp::FrontendRelease()
 void SceneApp::FrontendUpdate(float frame_time)
 {
 	const gef::SonyController* controller = input_manager_->controller_input()->GetController(0);
+
+	ProcessTouchInput();
 
 	if (audioStatusChanged == true)
 	{
@@ -358,6 +384,21 @@ void SceneApp::FrontendUpdate(float frame_time)
 
 void SceneApp::FrontendRender()
 {
+	// projection
+	float fov = gef::DegToRad(45.0f);
+	float aspect_ratio = (float)platform_.width() / (float)platform_.height();
+	gef::Matrix44 projection_matrix;
+	projection_matrix = platform_.PerspectiveProjectionFov(fov, aspect_ratio, 0.1f, 100.0f);
+	renderer_3d_->set_projection_matrix(projection_matrix);
+
+	// view
+	gef::Vector4 camera_eye(-2.0f, 2.0f, 15.0f);
+	gef::Vector4 camera_lookat(0.0f, 0.0f, 0.0f);
+	gef::Vector4 camera_up(0.0f, 1.0f, 0.0f);
+	gef::Matrix44 view_matrix;
+	view_matrix.LookAt(camera_eye, camera_lookat, camera_up);
+	renderer_3d_->set_view_matrix(view_matrix);
+
 	sprite_renderer_->Begin();
 
 	//Render our background 
@@ -375,7 +416,7 @@ void SceneApp::FrontendRender()
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
-		"Save The Home!");
+		"Save The House!");
 
 	//Render audio text
 	font_->RenderText(
@@ -385,6 +426,28 @@ void SceneApp::FrontendRender()
 		0xffffffff,
 		gef::TJ_CENTRE,
 		"Press 'm' at any time to mute/unmute audio.");
+
+	//Render our rounds to beat text
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.85f, platform_.height() * 0.6f, 0.f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Rounds to beat");
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.85f, platform_.height() * 0.5f, 0.f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"%i", roundsToBeat);
+
+	//Render the increment button and decrement button
+	sprite_renderer_->DrawSprite(*mainMenuButtons[0]);
+	sprite_renderer_->DrawSprite(*mainMenuButtons[1]);
 
 	// Render button icon
 	gef::Sprite button;
@@ -616,8 +679,16 @@ void SceneApp::GameUpdate(float frame_time)
 
 	if (enemies.size() == 0)
 	{
-		updateStateMachine(2,1);
-		return;
+		if (roundCounter == roundsToBeat)
+		{
+			updateStateMachine(4, 1);
+			return;
+		}
+		else
+		{
+			updateStateMachine(2,1);
+			return;
+		}
 	}
 
 	if (playerData.getHealth() <= 0)
@@ -725,6 +796,14 @@ void SceneApp::GameRender()
 		0xffffffff,
 		gef::TJ_CENTRE,
 		"Ammo count: %i", activeWeapon.getAmmo());
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Day: %i", roundCounter);
 
 	activeWeapon.set_position(gef::Vector4(platform_.width() * 0.03f, platform_.height() * 0.05f , 0));
 	sprite_renderer_->DrawSprite(activeWeapon);
@@ -982,6 +1061,12 @@ void SceneApp::FailRender()
 
 void SceneApp::WinInit()
 {
+	audioManager->LoadMusic("WinMusic.wav", platform_);
+
+	if (playAudio == true)
+	{
+		audioManager->PlayMusic();
+	}
 }
 
 void SceneApp::WinRelease()
@@ -990,6 +1075,13 @@ void SceneApp::WinRelease()
 
 void SceneApp::WinUpdate(float frame_time)
 {
+	if (audioStatusChanged == true)
+	{
+		if (playAudio == true)
+		{
+			audioManager->PlayMusic();
+		}
+	}
 }
 
 void SceneApp::WinRender()
@@ -1196,37 +1288,23 @@ void SceneApp::ProcessTouchInput()
 								}
 							}
 						}
-
-						for (int i = 0; i < storeWeapons.size(); i++)
+						break;
+					case SceneApp::INIT:
+						//Here we need to loop through all the main menu buttons and see if the player interacts with them.
+						for (int i = 0; i < mainMenuButtons.size(); i++)
 						{
-							if (storeWeapons[i])
+							if (mainMenuButtons[i])
 							{
-								gef::Vector4 sphere_centre(storeWeapons[i]->getBody()->GetPosition().x, storeWeapons[i]->getBody()->GetPosition().y, 0.0f);
+								gef::Vector4 sphere_centre(mainMenuButtons[i]->getBody()->GetPosition().x, mainMenuButtons[i]->getBody()->GetPosition().y, 0.0f);
 								float  sphere_radius = 1.0f;
-
 								// check to see if the ray intersects with the bound sphere that is around the player
 								if (RaySphereIntersect(ray_start_position, ray_direction, sphere_centre, sphere_radius))
 								{
 									//Player touched an enemy do something
-									playerData = storeWeapons[i]->run(playerData); //Lower this by the damage of the current weapon
-									if (storeWeapons[i]->didPurchaseSucced() == true)
-									{
-										if (playAudio == true)
-										{
-											audioManager->PlaySample(purchaseSfx, false);
-										}
-									}
-									else
-									{
-										if (playAudio == true)
-										{
-											audioManager->PlaySample(purchasefailSFX, false);
-										}
-									}
+									roundsToBeat = mainMenuButtons[i]->run(roundsToBeat);
 								}
 							}
 						}
-
 						break;
 					default:
 						break;
