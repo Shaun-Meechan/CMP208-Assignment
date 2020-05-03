@@ -155,6 +155,9 @@ private:
 	unsigned short int purchaseSfx = 0;
 	unsigned short int purchasefailSFX = 0;
 	gef::Texture* selectedWeaponTexture;
+	
+	//Fail screen variables
+	unsigned short int failBackgroundsfx = 0;
 	// Global Functions
 	void updateStateMachine(int newID, int oldID);
 };

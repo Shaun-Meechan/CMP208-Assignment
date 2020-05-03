@@ -184,11 +184,11 @@ void SceneApp::CleanUpFont()
 
 void SceneApp::DrawHUD()
 {
-	if(font_)
-	{
-		// display frame rate
-		font_->RenderText(sprite_renderer_, gef::Vector4(850.0f, 510.0f, -0.9f), 1.0f, 0xffffffff, gef::TJ_LEFT, "FPS: %.1f", fps_);
-	}
+	//if(font_)
+	//{
+	//	// display frame rate
+	//	font_->RenderText(sprite_renderer_, gef::Vector4(850.0f, 510.0f, -0.9f), 1.0f, 0xffffffff, gef::TJ_LEFT, "FPS: %.1f", fps_);
+	//}
 }
 
 void SceneApp::SetupLights()
@@ -1034,6 +1034,11 @@ void SceneApp::StoreRender()
 
 void SceneApp::FailInit()
 {
+	failBackgroundsfx = audioManager->LoadSample("DeathSfx.wav", platform_);
+	if (playAudio == true)
+	{
+		audioManager->PlaySample(failBackgroundsfx, true);
+	}
 }
 
 void SceneApp::FailRelease()
@@ -1042,6 +1047,17 @@ void SceneApp::FailRelease()
 
 void SceneApp::FailUpdate(float frame_time)
 {
+	if (audioStatusChanged == true)
+	{
+		if (playAudio == true)
+		{
+			audioManager->PlaySample(failBackgroundsfx, true);
+		}
+		else
+		{
+			audioManager->StopPlayingSampleVoice(failBackgroundsfx);
+		}
+	}
 }
 
 void SceneApp::FailRender()
@@ -1080,6 +1096,10 @@ void SceneApp::WinUpdate(float frame_time)
 		if (playAudio == true)
 		{
 			audioManager->PlayMusic();
+		}
+		else
+		{
+			audioManager->StopMusic();
 		}
 	}
 }
