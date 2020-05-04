@@ -459,14 +459,6 @@ void SceneApp::FrontendRender()
 		sprite_renderer_->DrawSprite(*mainMenuButtons[i]);		
 	}
 
-	// Render button icon
-	//gef::Sprite button;
-	//button.set_texture(button_icon_);
-	//button.set_position(gef::Vector4(platform_.width()*0.5f, platform_.height()*0.5f, 0.f));
-	//button.set_height(128.0f);
-	//button.set_width(128.0f);
-	//sprite_renderer_->DrawSprite(button);
-
 	DrawHUD();
 	sprite_renderer_->End();
 }
@@ -765,6 +757,14 @@ void SceneApp::GameRender()
 	// start drawing sprites, but don't clear the frame buffer
 	sprite_renderer_->Begin(false);
 
+
+	gef::Sprite background;
+	background.set_texture(gameBackgroundSprite);
+	background.set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f, 1.0f));
+	background.set_height(platform_.height());
+	background.set_width(platform_.width());
+	sprite_renderer_->DrawSprite(background);
+
 	DrawHUD();
 
 	// Render Title Text
@@ -774,7 +774,7 @@ void SceneApp::GameRender()
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
-		"Health %i", playerData.getHealth());
+		"Health: %i", playerData.getHealth());
 
 	font_->RenderText(
 		sprite_renderer_,
@@ -816,15 +816,16 @@ void SceneApp::GameRender()
 		gef::TJ_CENTRE,
 		"Day: %i", roundCounter);
 
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.6f, platform_.height() * 0.1f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"TEST");
+
 	activeWeapon.set_position(gef::Vector4(platform_.width() * 0.03f, platform_.height() * 0.05f , 0));
 	sprite_renderer_->DrawSprite(activeWeapon);
-
-	gef::Sprite background;
-	background.set_texture(gameBackgroundSprite);
-	background.set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f, 1.0f));
-	background.set_height(platform_.height());
-	background.set_width(platform_.width());
-	sprite_renderer_->DrawSprite(background);
 
 	sprite_renderer_->End();
 }
