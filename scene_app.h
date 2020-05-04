@@ -56,12 +56,6 @@ private:
 	gef::InputManager* input_manager_;
 	gef::AudioManager* audioManager;
 
-	//
-	// FRONTEND DECLARATIONS
-	//
-	gef::Texture* button_icon_;
-	gef::Texture* backgroundSprite;
-
 	//Splash Declarations
 	gef::Texture* SplashBackground;
 	//
@@ -117,6 +111,8 @@ private:
 
 	//Main Menu Variables
 	std::vector<MainMenuButton*> mainMenuButtons;
+	gef::Texture* button_icon_;
+	gef::Texture* backgroundSprite;
 	//Game Variables
 	unsigned short int roundCounter = 1;
 	float lastRfilemenAttackTime = 0.0f;
@@ -158,6 +154,10 @@ private:
 	
 	//Fail screen variables
 	unsigned short int failBackgroundsfx = 0;
+	gef::Texture* failBackgroundSprite;
+
+	//Win screen variables
+	gef::Texture* winBackgroundSprite;
 	// Global Functions
 	void updateStateMachine(int newID, int oldID);
 };

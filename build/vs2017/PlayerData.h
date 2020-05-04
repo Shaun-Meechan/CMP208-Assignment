@@ -21,6 +21,7 @@ public:
 	void setLastDamageTime(float value);
 	unsigned int getWeaponsSize();
 	bool hasWeapon(char* weaponName);
+	void resetData();
 private:
 	int credits = 0;
 	std::vector<Weapon> weapons;

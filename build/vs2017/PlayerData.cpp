@@ -150,3 +150,14 @@ bool PlayerData::hasWeapon(char* weaponName)
 
 	return found;
 }
+
+void PlayerData::resetData()
+{
+	credits = 0;
+	weapons.clear();
+	weapons.shrink_to_fit();
+	health = 100;
+	lastDamageTime = 0.0f;
+	riflemen = 0;
+	repairGuys = 0;
+}

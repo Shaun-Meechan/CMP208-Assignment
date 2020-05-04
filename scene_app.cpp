@@ -88,7 +88,7 @@ bool SceneApp::Update(float frame_time)
 				updateStateMachine(1,2);
 				break;
 			case SceneApp::Fail:
-				updateStateMachine(1, 3);
+				updateStateMachine(0, 3);
 				break;
 			case SceneApp::Win:
 				updateStateMachine(0, 4);
@@ -319,6 +319,8 @@ void SceneApp::UpdateSimulation(float frame_time)
 
 void SceneApp::FrontendInit()
 {
+	roundCounter = 1;
+
 	renderer_3d_ = gef::Renderer3D::Create(platform_);
 
 	button_icon_ = CreateTextureFromPNG("playbuttonWhite.png", platform_);
@@ -352,10 +354,16 @@ void SceneApp::FrontendRelease()
 	backgroundSprite = NULL;
 
 	mainMenuButtons[0]->getIcon()->~Texture();
-	delete mainMenuButtons[0];
 
 	mainMenuButtons[1]->getIcon()->~Texture();
-	delete mainMenuButtons[1];
+
+	for (int i = 0; i < mainMenuButtons.size(); i++)
+	{
+		delete mainMenuButtons[i];
+	}
+
+	mainMenuButtons.clear();
+	mainMenuButtons.shrink_to_fit();
 
 	delete world_;
 	world_ = NULL;
@@ -463,6 +471,7 @@ void SceneApp::FrontendRender()
 
 void SceneApp::GameInit(int enemiesToMake)
 {
+	playerData.resetData();
 	const char* sceneAssetFilename;
 	// initialise the physics world
 	b2Vec2 gravity(0.0f,0.0f);
@@ -1034,6 +1043,8 @@ void SceneApp::StoreRender()
 
 void SceneApp::FailInit()
 {
+	failBackgroundSprite = CreateTextureFromPNG("failScreenBackground.png", platform_);
+
 	failBackgroundsfx = audioManager->LoadSample("DeathSfx.wav", platform_);
 	if (playAudio == true)
 	{
@@ -1043,6 +1054,8 @@ void SceneApp::FailInit()
 
 void SceneApp::FailRelease()
 {
+	audioManager->UnloadSample(failBackgroundsfx);
+	failBackgroundsfx = NULL;
 }
 
 void SceneApp::FailUpdate(float frame_time)
@@ -1064,19 +1077,37 @@ void SceneApp::FailRender()
 {
 	sprite_renderer_->Begin();
 
+	//Render our background 
+	gef::Sprite background;
+	background.set_texture(failBackgroundSprite);
+	background.set_position(gef::Vector4(platform_.width() - 480.f, platform_.height() - 273.f, 0.0f));
+	background.set_height(platform_.height());
+	background.set_width(platform_.width());
+	sprite_renderer_->DrawSprite(background);
+
 	font_->RenderText(
 		sprite_renderer_,
-		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f, 0.0f),
+		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.1f, 0.0f),
 		1.0f,
 		0xffffffff,
 		gef::TJ_CENTRE,
 		"You have been defeated, your house is yours no longer.");
+
+	font_->RenderText(
+		sprite_renderer_,
+		gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.9f, 0.0f),
+		1.0f,
+		0xffffffff,
+		gef::TJ_CENTRE,
+		"Press 'Enter' to go back to the main menu.");
+
 
 	sprite_renderer_->End();
 }
 
 void SceneApp::WinInit()
 {
+	winBackgroundSprite = CreateTextureFromPNG("groundSprite.png", platform_);
 	audioManager->LoadMusic("WinMusic.wav", platform_);
 
 	if (playAudio == true)
@@ -1107,6 +1138,15 @@ void SceneApp::WinUpdate(float frame_time)
 void SceneApp::WinRender()
 {
 	sprite_renderer_->Begin();
+
+	//Render our background 
+	gef::Sprite background;
+	background.set_texture(winBackgroundSprite);
+	background.set_position(gef::Vector4(platform_.width() - 480.f, platform_.height() - 273.f, 0.0f));
+	background.set_height(platform_.height());
+	background.set_width(platform_.width());
+	sprite_renderer_->DrawSprite(background);
+
 
 	font_->RenderText(
 		sprite_renderer_,
@@ -1162,7 +1202,18 @@ void SceneApp::updateStateMachine(int newID, int oldID)
 	switch (newID)
 	{
 	case 0://Front end
-		WinRelease();
+		if (oldID == 3)
+		{
+			FailRelease();
+		}
+		else if (oldID == 4)
+		{
+			WinRelease();
+		}
+		else
+		{
+			SplashRelease();
+		}
 		FrontendInit();
 		gameState = INIT;
 		break;
@@ -1174,10 +1225,6 @@ void SceneApp::updateStateMachine(int newID, int oldID)
 		if (oldID == 2)
 		{
 			StoreRelease();
-		}
-		if (oldID == 3)
-		{
-			FailRelease();
 		}
 		GameInit(roundCounter * 2);
 		gameState = Level1;
