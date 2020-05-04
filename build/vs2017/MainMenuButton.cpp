@@ -18,6 +18,10 @@ MainMenuButton::MainMenuButton(const char* pngFileName, gef::Platform* platform,
 	{
 		buttonType = type::Decrease;
 	}
+	else if (newType == "Play")
+	{
+		buttonType = type::Play;
+	}
 	else
 	{
 		gef::DebugOut("ERROR: Unable to set main menu button type!\n");
@@ -51,6 +55,11 @@ unsigned short int MainMenuButton::run(unsigned short int value)
 			number -= 1;
 			return number;
 		}
+	}
+	else if (buttonType == type::Play)
+	{
+		number = 0;
+		return number;
 	}
 	else
 	{

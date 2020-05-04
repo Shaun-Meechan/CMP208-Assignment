@@ -12,7 +12,8 @@ namespace gef
 enum  class type
 {
 	Increase,
-	Decrease
+	Decrease,
+	Play
 };
 
 class MainMenuButton: public gef::Sprite

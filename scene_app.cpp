@@ -341,6 +341,9 @@ void SceneApp::FrontendInit()
 
 	mainMenuButtons.push_back(new MainMenuButton("fast-backward-button.png", &platform_, "Decrease", world_, b2Vec2(11, 0)));
 	mainMenuButtons[1]->set_position(gef::Vector4(platform_.width() * 0.95f, platform_.height() * 0.5f, 0));
+
+	mainMenuButtons.push_back(new MainMenuButton("playbuttonWhite.png", &platform_, "Play", world_, b2Vec2(0, 0)));
+	mainMenuButtons[2]->set_position(gef::Vector4(platform_.width() * 0.5f, platform_.height() * 0.5f, 0.0f));
 }
 
 void SceneApp::FrontendRelease()
@@ -353,12 +356,9 @@ void SceneApp::FrontendRelease()
 	delete backgroundSprite;
 	backgroundSprite = NULL;
 
-	mainMenuButtons[0]->getIcon()->~Texture();
-
-	mainMenuButtons[1]->getIcon()->~Texture();
-
 	for (int i = 0; i < mainMenuButtons.size(); i++)
 	{
+		mainMenuButtons[i]->getIcon()->~Texture();
 		delete mainMenuButtons[i];
 	}
 
@@ -454,16 +454,18 @@ void SceneApp::FrontendRender()
 		"%i", roundsToBeat);
 
 	//Render the increment button and decrement button
-	sprite_renderer_->DrawSprite(*mainMenuButtons[0]);
-	sprite_renderer_->DrawSprite(*mainMenuButtons[1]);
+	for (int i = 0; i < mainMenuButtons.size(); i++)
+	{
+		sprite_renderer_->DrawSprite(*mainMenuButtons[i]);		
+	}
 
 	// Render button icon
-	gef::Sprite button;
-	button.set_texture(button_icon_);
-	button.set_position(gef::Vector4(platform_.width()*0.5f, platform_.height()*0.5f, 0.f));
-	button.set_height(128.0f);
-	button.set_width(128.0f);
-	sprite_renderer_->DrawSprite(button);
+	//gef::Sprite button;
+	//button.set_texture(button_icon_);
+	//button.set_position(gef::Vector4(platform_.width()*0.5f, platform_.height()*0.5f, 0.f));
+	//button.set_height(128.0f);
+	//button.set_width(128.0f);
+	//sprite_renderer_->DrawSprite(button);
 
 	DrawHUD();
 	sprite_renderer_->End();
@@ -1368,7 +1370,17 @@ void SceneApp::ProcessTouchInput()
 								if (RaySphereIntersect(ray_start_position, ray_direction, sphere_centre, sphere_radius))
 								{
 									//Player touched an enemy do something
-									roundsToBeat = mainMenuButtons[i]->run(roundsToBeat);
+									unsigned short int tempRTB = 10;
+									tempRTB = mainMenuButtons[i]->run(tempRTB);
+
+									if (tempRTB == 0)
+									{
+										updateStateMachine(1, 0);
+									}
+									else
+									{
+										roundsToBeat = mainMenuButtons[i]->run(roundsToBeat);
+									}
 								}
 							}
 						}
