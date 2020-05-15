@@ -816,14 +816,6 @@ void SceneApp::GameRender()
 		gef::TJ_CENTRE,
 		"Day: %i", roundCounter);
 
-	font_->RenderText(
-		sprite_renderer_,
-		gef::Vector4(platform_.width() * 0.6f, platform_.height() * 0.1f, 0.0f),
-		1.0f,
-		0xffffffff,
-		gef::TJ_CENTRE,
-		"TEST");
-
 	activeWeapon.set_position(gef::Vector4(platform_.width() * 0.03f, platform_.height() * 0.05f , 0));
 	sprite_renderer_->DrawSprite(activeWeapon);
 
